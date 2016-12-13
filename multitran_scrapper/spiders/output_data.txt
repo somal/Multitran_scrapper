@@ -1,0 +1,205 @@
+choose наглядеть
+choose излюбить
+choose остановиться на
+choose считать необходимым
+choose любовать
+choose генерализировать
+choose выделять
+choose отобрать
+choose осуществить
+choose осуществлять
+choose указать
+choose указывать
+choose генерализовать
+choose принять решение
+choose подделать
+choose составлять
+choose желать
+choose придумать
+choose выбирать полового партнёра
+choose облюбить
+choose выбирать
+choose оптировать
+request просьба
+request требование
+request запрос
+request заявка
+request спрос
+request информационный запрос
+request пожелание
+request нужда
+request ходатайство
+request опрос
+request запрос
+request требование
+request желание
+request заявление
+request спрос
+request ходатайство
+request условия подряда
+request просить
+request предлагать
+request предписывать
+request истребовать
+request просить
+request затребовать
+request обращаться с ходатайством
+request запрашивать
+request затребовать
+request требовать
+request ходатайствовать
+request предложить
+request поручать
+request поручить
+request предлагать
+request поручение
+request предложение
+request Разрешите...
+request Recruit Quota System
+charging нагнетение
+charging зарядка
+charging зарядка
+charging нагрузка
+charging заливка
+charging зарядка
+charging наполнение
+charging занесение на счёт
+charging расходование
+charging заправка
+charging заправка
+charging обременение
+charging зарядный штуцер
+charging загрузка
+charging завалка
+charging наполняющий
+charging засыпка
+charging посад
+charging загрузочный
+charging заряжание скважин
+charging заряжание шпуров
+charging засыпка пороха в гильзу
+charging обвиняющий
+charging введение наполнителя
+charging закладка
+charging садка
+charging всад
+charging заправка
+charging обвинение
+charging зарядный
+charging заряжающий
+charging начисления
+charging шихта
+charging загрузка
+charging засыпка
+charging колоша
+charging нагнетание
+charging наддув
+charging накопление заряда
+charging подзарядка
+charging поляризация
+charging приём
+charging неправильная атака соперника
+charging подача сырья
+charging начисление
+charging взимание
+charging взыскание
+charging заряд
+charging подзаряд
+charging заряд
+charging зарядка
+charging загрузка топлива
+charging заполнение
+charging нагружать
+charging загружать
+charging давать зарядный ток
+charging приказывать
+charging шаржировать
+charging заполнять
+charging наносить алмазный порошок
+charging запрашивать цену
+charging возлагать расход
+charging требовать цену
+charging предъявлять обвинение
+charging возлагать ответственность
+charging взыскивать
+charging обязывать
+charging предлагать
+charging оценивать
+charging ставить в счёт
+charging дебетовать
+charging относить на дебет
+charging заряжаться
+charging бросаться в атаку
+charging штурмовать
+charging загружать
+charging требовать плату
+charging назначать
+charging взимать
+charging закладывать
+charging обременять залогом
+charging взыскивать
+charging требовать оплату
+charging вменять в вину
+charging возлагать ответственность
+charging заваливать
+charging возлагать обязанности
+charging поручить
+charging грузить
+charging создавать давление
+charging вводить наполнитель
+charging ограбить
+charging брать деньги
+charging заправить
+charging начислять оплату
+charging пополнять
+charging засыпать
+charging начислять сбор
+charging атаковать игрока с мячом
+charging засыпать
+charging взимать плату
+charging записать в дебет
+charging относить на счёт
+charging вменять в обязанность
+charging возлагать обязанность
+charging обременять вещь
+charging обременять залогом
+charging выдвигать обвинение
+charging начислять
+charging облагать
+charging назначить цену
+charging напутствовать присяжных заседателей
+charging устанавливать цену
+charging предъявить обвинение
+charging приказать
+charging наполнительный
+charging наддувочный
+computer компьютер
+computer хост
+computer расчётчик
+computer электронный калькулятор
+computer велокомпьютер
+computer спидометр
+computer электронная вычислительная машина
+computer машина
+computer кибермашина
+computer счётная машина
+computer топограф-полевик
+computer счётный прибор
+computer счислитель
+computer машина
+computer устройство
+computer быстродействующая электронная счётная машина
+computer кибер
+computer счётчик
+computer вычислительное устройство
+computer картограф
+computer процессор
+computer компьютерные системы
+computer вычислительная техника
+computer счётчик
+computer компьютерный
+computer машинный
+computer электронно-вычислительная машина
+computer вычислительный
+computer автоматизированный
+computer управляемый компьютером
