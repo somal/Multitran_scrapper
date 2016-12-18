@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from scrapy import Request
+import csv
 
 
 # from scrapy.selector import Selector
@@ -12,7 +13,7 @@ class MultitranSpider(scrapy.Spider):
 	start_urls = ['http://multitran.ru/']
 
 	def __init__(self):
-		self.input = open('input_data.txt', 'r')
+		self.input = open('input_wos_categories', 'r')
 		self.output = []
 
 	def parse(self, response):
@@ -29,8 +30,11 @@ class MultitranSpider(scrapy.Spider):
 		# self.logger.error("Bla")
 
 	def close(self, reason):
-		output_file = open('output_data.txt', 'w')
+		output_file = open('output_wos_categories.csv', 'w')
+		writer = csv.writer(output_file, delimiter='	', quotechar='"', quoting=csv.QUOTE_ALL)
+
 		for w, t in self.output:
-			# output_file.write()
-			print("{} {}".format(w, t), file=output_file)
+			# print("{} {}".format(w, t), file=output_file)
+			writer.writerow([w]+[t])
+
 		output_file.close()
