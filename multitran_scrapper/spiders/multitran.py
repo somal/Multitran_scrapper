@@ -4,11 +4,12 @@ from scrapy import Request
 import csv
 
 # Settings
-INPUT_CSV_NAME = 'input.csv'
+INPUT_CSV_NAME = 'input.csv'  # Path to input file with csv type
+# Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '|'
-OUTPUT_CSV_NAME = 'output.csv'
-TRANSLATE_WORD_INDEX = 0
+OUTPUT_CSV_NAME = 'output.csv'  # Path to output file with csv type
+TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
 
 
 class MultitranSpider(scrapy.Spider):
