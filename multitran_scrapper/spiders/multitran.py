@@ -3,6 +3,7 @@ import scrapy
 from scrapy import Request
 import csv
 
+# Settings
 INPUT_CSV_NAME = 'input.csv'
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '|'
