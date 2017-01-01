@@ -1,4 +1,0 @@
-request
-choose
-computer
-charging
