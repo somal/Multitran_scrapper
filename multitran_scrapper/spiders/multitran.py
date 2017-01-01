@@ -22,21 +22,23 @@ class MultitranSpider(scrapy.Spider):
     def start_requests(self):
         requests = []
         for input_word in self.input_reader:
-            request = Request("http://www.multitran.ru/c/m.exe?s={}".format(input_word[0]), callback=self.translate,
-                              meta={"input_word": input_word[0]})
-            requests.append(request)
+            if len(input_word) > 0:
+                request = Request("http://www.multitran.ru/c/m.exe?s={}".format(input_word[0]), callback=self.translate,
+                                  meta={"input_word": input_word[0]})
+
+                requests.append(request)
         return requests
 
     def translate(self, response):
         input_word = response.meta['input_word']
-        common_path = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
+        row_path = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
         translate_xpath = 'td[2]/a/text()'
         dict_xpath = 'td[1]/a/i/text()'
-        for word in response.xpath(common_path):
-            dictionary = word.xpath(dict_xpath).extract()
-            for translate in word.xpath(translate_xpath):
-                self.output.append([input_word, dictionary[0], translate.extract()])
-                # pass
+        for row in response.xpath(row_path):
+            dictionary = row.xpath(dict_xpath).extract()
+            if len(dictionary) > 0:
+                for translate in row.xpath(translate_xpath):
+                    self.output.append([input_word, dictionary[0], translate.extract()])
 
     def close(self, reason):
         output_file = open(OUTPUT_CSV_NAME, 'w')
