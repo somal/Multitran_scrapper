@@ -3,38 +3,43 @@ import scrapy
 from scrapy import Request
 import csv
 
-
-# from scrapy.selector import Selector
+INPUT_CSV_NAME = 'input.csv'
+CSV_DELIMITER = '	'
+CSV_QUOTECHAR = '|'
+OUTPUT_CSV_NAME = 'output.csv'
 
 
 class MultitranSpider(scrapy.Spider):
-	name = "multitran"
-	allowed_domains = ["multitran.ru"]
-	start_urls = ['http://multitran.ru/']
+    name = "multitran"
+    allowed_domains = ["multitran.ru"]
 
-	def __init__(self):
-		self.input = open('input_wos_categories', 'r')
-		self.output = []
+    def __init__(self):
+        input = open(INPUT_CSV_NAME, 'r')
+        self.input_reader = csv.reader(input, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
+                                       quoting=csv.QUOTE_ALL)
+        self.output = []
 
-	def parse(self, response):
-		for input_word in self.input.readlines():
-			request = Request("http://www.multitran.ru/c/m.exe?s={}".format(input_word), callback=self.translate)
-			request.meta['input_word'] = input_word.strip()
-			yield request
+    def start_requests(self):
+        requests = []
+        for input_word in self.input_reader:
+            request = Request("http://www.multitran.ru/c/m.exe?s={}".format(input_word[0]), callback=self.translate,
+                              meta={"input_word": input_word[0]})
+            requests.append(request)
+        return requests
 
-	def translate(self, response):
-		input_word = response.meta['input_word']
-		xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr/td[2]/a/text()'
-		for word in response.xpath(xpath):
-			self.output.append((input_word, word.extract()))
-		# self.logger.error("Bla")
+    def translate(self, response):
+        input_word = response.meta['input_word']
+        common_path = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
+        translate_xpath = 'td[2]/a/text()'
+        dict_xpath = 'td[1]/a/i/text()'
+        for word in response.xpath(common_path):
+            dictionary = word.xpath(dict_xpath).extract()
+            for translate in word.xpath(translate_xpath):
+                self.output.append([input_word, dictionary[0], translate.extract()])
+                # pass
 
-	def close(self, reason):
-		output_file = open('output_wos_categories.csv', 'w')
-		writer = csv.writer(output_file, delimiter='	', quotechar='"', quoting=csv.QUOTE_ALL)
-
-		for w, t in self.output:
-			# print("{} {}".format(w, t), file=output_file)
-			writer.writerow([w]+[t])
-
-		output_file.close()
+    def close(self, reason):
+        output_file = open(OUTPUT_CSV_NAME, 'w')
+        writer = csv.writer(output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR, quoting=csv.QUOTE_ALL)
+        writer.writerows(self.output)
+        output_file.close()
