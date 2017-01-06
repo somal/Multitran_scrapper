@@ -10,6 +10,7 @@ CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '|'
 OUTPUT_CSV_NAME = 'output.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
+EXCEPTED_DICTIONARIES = ['сл.', 'разг.', 'табу']  # Dictionaries which shouldn't be in output
 
 
 class MultitranSpider(scrapy.Spider):
@@ -41,6 +42,8 @@ class MultitranSpider(scrapy.Spider):
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
+                if dictionary[0] in EXCEPTED_DICTIONARIES:
+                    continue
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(dictionary[0])
