@@ -2,6 +2,7 @@
 import scrapy
 from scrapy import Request
 import csv
+import re
 
 # Settings
 INPUT_CSV_NAME = 'input.csv'  # Path to input file with csv type
@@ -10,7 +11,7 @@ CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '|'
 OUTPUT_CSV_NAME = 'output.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
-EXCEPTED_DICTIONARIES = ['сл.', 'разг.', 'табу']  # Dictionaries which shouldn't be in output
+EXCEPTED_DICTIONARIES = ['Сленг', 'Разговорное выражение', 'табу']  # Dictionaries which shouldn't be in output
 
 
 class MultitranSpider(scrapy.Spider):
@@ -34,21 +35,30 @@ class MultitranSpider(scrapy.Spider):
                 requests.append(request)
         return requests
 
+    def clean(self, r):
+        row = re.sub('\<script[^\<]*\<\/script\>', '', r)
+        row = re.sub('\<[^\>]*\>', '', row)
+        row = re.sub('\<t[rd][^]*/\\>', '', r)
+        return row
+        # return "!".join([r, re.sub('\<[^\>]*\>', '', row)])
+
     def translate(self, response):
         input_row = response.meta['input_row'][TRANSLATE_WORD_INDEX]
-        common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
-        translate_xpath = 'td[2]/a/text()'
-        dict_xpath = 'td[1]/a/i/text()'
+        # common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
+        common_row_xpath = '//*/tr'
+        translate_xpath = 'td[ child::a[not(@title)]]'
+        dict_xpath = 'td[1]/a/@title'
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
-                if dictionary[0] in EXCEPTED_DICTIONARIES:
-                    continue
+                # if dictionary[0] in EXCEPTED_DICTIONARIES:
+                # continue
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(dictionary[0])
-                    output_array.append(translate.extract())
+                    output_array.append(self.clean(translate.extract()))
                     self.output.append(output_array)
+                    # self.logger.error('!!!!!!!!!!!!!!!!!')
 
     def close(self, reason):
         output_file = open(OUTPUT_CSV_NAME, 'w')

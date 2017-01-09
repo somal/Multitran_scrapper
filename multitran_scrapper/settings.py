@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'multitran_scrapper.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'multitran_scrapper (+http://www.yourdomain.com)'
+USER_AGENT = 'Chrome/55.0.2883.87'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
