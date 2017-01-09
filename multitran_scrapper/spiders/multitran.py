@@ -60,6 +60,7 @@ class MultitranSpider(scrapy.Spider):
                     self.output.append(output_array)
                     # self.logger.error('!!!!!!!!!!!!!!!!!')
 
+
     def close(self, reason):
         output_file = open(OUTPUT_CSV_NAME, 'w')
         writer = csv.writer(output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR, quoting=csv.QUOTE_ALL)
