@@ -29,34 +29,27 @@ class MultitranSpider(scrapy.Spider):
         for input_row in self.input_reader:
             if len(input_row) > 0:
                 word = input_row[TRANSLATE_WORD_INDEX]
-                request = Request("http://www.multitran.ru/c/m.exe?s={}".format(word), callback=self.translate,
+                request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2".format(word), callback=self.translate,
                                   meta={"input_row": input_row})
 
                 requests.append(request)
         return requests
 
-    def clean(self, r):
-        row = re.sub('\<script[^\<]*\<\/script\>', '', r)
-        row = re.sub('\<[^\>]*\>', '', row)
-        row = re.sub('\<t[rd][^]*/\\>', '', r)
-        return row
-        # return "!".join([r, re.sub('\<[^\>]*\>', '', row)])
-
     def translate(self, response):
         input_row = response.meta['input_row'][TRANSLATE_WORD_INDEX]
         # common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
         common_row_xpath = '//*/tr'
-        translate_xpath = 'td[ child::a[not(@title)]]'
-        dict_xpath = 'td[1]/a/@title'
+        translate_xpath = 'td[@class="trans"]/a/text()'
+        dict_xpath = 'td[@class="subj"]/a/text()'
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
-                # if dictionary[0] in EXCEPTED_DICTIONARIES:
-                # continue
+                if dictionary[0] in EXCEPTED_DICTIONARIES:
+                    continue
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(dictionary[0])
-                    output_array.append(self.clean(translate.extract()))
+                    output_array.append(translate.extract())
                     self.output.append(output_array)
                     # self.logger.error('!!!!!!!!!!!!!!!!!')
 
