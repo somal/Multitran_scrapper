@@ -44,20 +44,25 @@ class MultitranSpider(scrapy.Spider):
         common_row_xpath = '//*/tr'
         translate_xpath = 'td[@class="trans"]/a/text()'
         dict_xpath = 'td[@class="subj"]/a/text()'
+        nx_gramms_xpath = "//*/div[@class='middle_col'][3]/p[child::a]/text()"
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
                 if dictionary[0] in EXCEPTED_DICTIONARIES:
                     continue
+                nx_gramms = response.xpath(nx_gramms_xpath).extract()
+                # NX gramms wasn't found
+                nx_gramms = 'цельное слово' if len(nx_gramms) == 0 else nx_gramms[0]
+                translates_block = []
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(dictionary[0])
                     output_array.append(translate.extract())
-                    self.output_writer.writerow(output_array)
-                    # self.logger.error('!!!!!!!!!!!!!!!!!')
+                    output_array.append(nx_gramms)
+                    output_array = [x.strip() for x in output_array]
+                    translates_block.append(output_array)
+                self.output_writer.writerows(translates_block)
 
     def close(self, reason):
         self.input_file.close()
         self.output_file.close()
-        self.input_reader.close()
-        self.output_writer.close()
