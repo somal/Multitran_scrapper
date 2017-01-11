@@ -44,15 +44,22 @@ class MultitranSpider(scrapy.Spider):
         common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
         translate_xpath = 'td[@class="trans"]/a/text()'
         dict_xpath = 'td[@class="subj"]/a/text()'
-        nx_gramms_xpath = "//*/div[@class='middle_col'][3]/p[child::a]/text()"
+        nx_gramms_сommon_xpath = "//*/div[@class='middle_col'][3]"
+        nx_gramms_status_xpath = "p[child::a]/text()"
+        nx_gramms_words_xpath = "a/text()"
         block_name = 0
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
                 if dictionary[0] in EXCEPTED_DICTIONARIES:
                     continue
-                nx_gramms = response.xpath(nx_gramms_xpath).extract()
-                nx_gramms = 'цельное слово' if len(nx_gramms) == 0 else nx_gramms[0]
+
+                # NX grams detection
+                nx_gramms_common = response.xpath(nx_gramms_сommon_xpath)
+                nx_gramms_status = nx_gramms_common.xpath(nx_gramms_status_xpath).extract()
+                nx_gramms = 'цельное слово' if len(nx_gramms_status) == 0 else nx_gramms_status[0] + " : " + "|".join(
+                    nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
+
                 output = []
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
