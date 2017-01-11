@@ -52,6 +52,7 @@ class MultitranSpider(scrapy.Spider):
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(dictionary[0])
+                    output_array.append(translate.extract())
                     self.output_writer.writerow(output_array)
                     # self.logger.error('!!!!!!!!!!!!!!!!!')
 
