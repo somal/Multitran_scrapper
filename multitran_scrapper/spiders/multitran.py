@@ -5,10 +5,10 @@ import csv
 import re
 
 # Settings
-INPUT_CSV_NAME = 'input.csv'  # Path to input file with csv type
+INPUT_CSV_NAME = 'tmp.csv'  # Path to input file with csv type
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
-CSV_QUOTECHAR = '|'
+CSV_QUOTECHAR = '"'  # '|'
 OUTPUT_CSV_NAME = 'output.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
 EXCEPTED_DICTIONARIES = ['Сленг', 'Разговорное выражение', 'табу']  # Dictionaries which shouldn't be in output
@@ -31,7 +31,7 @@ class MultitranSpider(scrapy.Spider):
         for input_row in self.input_reader:
             if len(input_row) > 0:
                 word = input_row[TRANSLATE_WORD_INDEX]
-                request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2".format(word),
+                request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2".format(word),
                                   callback=self.translate,
                                   meta={"input_row": input_row})
 
