@@ -19,17 +19,20 @@ class MultitranSpider(scrapy.Spider):
     allowed_domains = ["multitran.ru"]
 
     def __init__(self):
-        input_file = open(INPUT_CSV_NAME, 'r')
-        self.input_reader = csv.reader(input_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
+        self.input_file = open(INPUT_CSV_NAME, 'r')
+        self.input_reader = csv.reader(self.input_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                        quoting=csv.QUOTE_ALL)
-        self.output = []
+        self.output_file = open(OUTPUT_CSV_NAME, 'w')
+        self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
+                                        quoting=csv.QUOTE_ALL)
 
     def start_requests(self):
         requests = []
         for input_row in self.input_reader:
             if len(input_row) > 0:
                 word = input_row[TRANSLATE_WORD_INDEX]
-                request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2".format(word), callback=self.translate,
+                request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2".format(word),
+                                  callback=self.translate,
                                   meta={"input_row": input_row})
 
                 requests.append(request)
@@ -49,13 +52,11 @@ class MultitranSpider(scrapy.Spider):
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(dictionary[0])
-                    output_array.append(translate.extract())
-                    self.output.append(output_array)
+                    self.output_writer.writerow(output_array)
                     # self.logger.error('!!!!!!!!!!!!!!!!!')
 
-
     def close(self, reason):
-        output_file = open(OUTPUT_CSV_NAME, 'w')
-        writer = csv.writer(output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR, quoting=csv.QUOTE_ALL)
-        writer.writerows(self.output)
-        output_file.close()
+        self.input_file.close()
+        self.output_file.close()
+        self.input_reader.close()
+        self.output_writer.close()
