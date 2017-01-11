@@ -41,27 +41,31 @@ class MultitranSpider(scrapy.Spider):
     def translate(self, response):
         input_row = response.meta['input_row'][TRANSLATE_WORD_INDEX]
         # common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
-        common_row_xpath = '//*/tr'
+        common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
         translate_xpath = 'td[@class="trans"]/a/text()'
         dict_xpath = 'td[@class="subj"]/a/text()'
         nx_gramms_xpath = "//*/div[@class='middle_col'][3]/p[child::a]/text()"
+        block_name = 0
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
                 if dictionary[0] in EXCEPTED_DICTIONARIES:
                     continue
                 nx_gramms = response.xpath(nx_gramms_xpath).extract()
-                # NX gramms wasn't found
                 nx_gramms = 'цельное слово' if len(nx_gramms) == 0 else nx_gramms[0]
-                translates_block = []
+                output = []
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
-                    output_array.append(dictionary[0])
                     output_array.append(translate.extract())
+                    output_array.append(dictionary[0])
+                    output_array.append(str(block_name))
                     output_array.append(nx_gramms)
                     output_array = [x.strip() for x in output_array]
-                    translates_block.append(output_array)
-                self.output_writer.writerows(translates_block)
+                    output.append(output_array)
+                self.output_writer.writerows(output)
+            else:
+                # block_name = "".join(common_row.xpath('td[@class="gray"]/text()').extract())
+                block_name += 1
 
     def close(self, reason):
         self.input_file.close()
