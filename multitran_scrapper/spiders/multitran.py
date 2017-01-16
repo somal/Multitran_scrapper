@@ -38,6 +38,30 @@ class MultitranSpider(scrapy.Spider):
                 requests.append(request)
         return requests
 
+    def recommend_translation(self, translations):
+        def calc_value(translate, unigrams):
+            words = translate.split()
+            return sum([unigrams[w] for w in words]) / len(words)
+
+        unigrams = {}
+        for translate in translations:
+            for words in translate.split():
+                if unigrams.get(words, None) is None:
+                    unigrams[words] = 1
+                else:
+                    unigrams[words] += 1
+
+        maxvalue = 0
+        result = []
+        for i, translate in enumerate(translations):
+            value = calc_value(translate, unigrams)
+            print(translate, value)
+            if value > maxvalue:
+                maxvalue = value
+                result = [i]
+
+        return result
+
     def translate(self, response):
         input_row = response.meta['input_row'][TRANSLATE_WORD_INDEX]
         # common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
@@ -48,6 +72,8 @@ class MultitranSpider(scrapy.Spider):
         nx_gramms_status_xpath = "p[child::a]/text()"
         nx_gramms_words_xpath = "a[string-length(@title)>0]/text()"
         block_number = 0
+        translates = []
+        output = []
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
@@ -60,7 +86,6 @@ class MultitranSpider(scrapy.Spider):
                 nx_gramms = 'цельное слово' if len(nx_gramms_status) == 0 else nx_gramms_status[0] + " : " + "|".join(
                     nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
-                output = []
                 for translate in common_row.xpath(translate_xpath):
                     output_array = response.meta['input_row'].copy()
                     output_array.append(translate.extract())
@@ -70,11 +95,20 @@ class MultitranSpider(scrapy.Spider):
                     output_array.append(nx_gramms)
                     output_array = [x.strip() for x in output_array]
                     output.append(output_array)
-                self.output_writer.writerows(output)
+
+                    translates.append(translate.extract())
             else:
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
                 block_number += 1
+
+        # Add recommended flag to every translates
+        recommended_translation_indexes = self.recommend_translation(translates)
+        for i, o in enumerate(output):
+            o.append('X' if i in recommended_translation_indexes else 'O')
+
+        # Write ready-to-use data to csv file
+        self.output_writer.writerows(output)
 
     def close(self, reason):
         self.input_file.close()
