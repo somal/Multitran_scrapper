@@ -46,7 +46,7 @@ class MultitranSpider(scrapy.Spider):
         dict_xpath = 'td[@class="subj"]/a/text()'
         nx_gramms_сommon_xpath = "//*/div[@class='middle_col'][3]"
         nx_gramms_status_xpath = "p[child::a]/text()"
-        nx_gramms_words_xpath = "a/text()"
+        nx_gramms_words_xpath = "a[string-length(@title)>0]/text()"
         block_number = 0
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
@@ -72,7 +72,6 @@ class MultitranSpider(scrapy.Spider):
                     output.append(output_array)
                 self.output_writer.writerows(output)
             else:
-                # block_name = "".join(common_row.xpath('td[@class="gray"]/text()').extract())
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
                 block_number += 1
