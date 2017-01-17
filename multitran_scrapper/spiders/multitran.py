@@ -5,7 +5,7 @@ import csv
 import re
 
 # Settings
-INPUT_CSV_NAME = 'input.csv'  # Path to input file with csv type
+INPUT_CSV_NAME = 'wos_ngrams.csv'  # Path to input file with csv type
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
@@ -28,14 +28,16 @@ class MultitranSpider(scrapy.Spider):
 
     def start_requests(self):
         requests = []
+        i = 0
         for input_row in self.input_reader:
             if len(input_row) > 0:
                 word = input_row[TRANSLATE_WORD_INDEX]
                 request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2".format(word),
                                   callback=self.translate,
-                                  meta={"input_row": input_row})
+                                  meta={"input_row": input_row, 'index': i})
 
                 requests.append(request)
+                i += 1
         return requests
 
     def recommend_translation(self, translations):
@@ -55,7 +57,6 @@ class MultitranSpider(scrapy.Spider):
         result = []
         for i, translate in enumerate(translations):
             value = calc_value(translate, unigrams)
-            print(translate, value)
             if value > maxvalue:
                 maxvalue = value
                 result = [i]
@@ -109,6 +110,7 @@ class MultitranSpider(scrapy.Spider):
 
         # Write ready-to-use data to csv file
         self.output_writer.writerows(output)
+        print(response.meta['index'])
 
     def close(self, reason):
         self.input_file.close()
