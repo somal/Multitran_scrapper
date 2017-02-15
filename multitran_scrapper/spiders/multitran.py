@@ -33,37 +33,37 @@ class MultitranSpider(scrapy.Spider):
             if len(input_row) > 0:
                 word = input_row[TRANSLATE_WORD_INDEX]
                 request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2".format(word),
-                                  callback=self.translate,
+                                  callback=self.parse,
                                   meta={"input_row": input_row, 'index': i})
 
                 requests.append(request)
                 i += 1
         return requests
 
-    def recommend_translation(self, translations):
-        def calc_value(translate, unigrams):
-            words = translate.split()
-            return sum([unigrams[w] for w in words]) / len(words)
+    def parse(self, response):
+        def recommend_translation(translations):
+            def calc_value(translate, unigrams):
+                words = translate.split()
+                return sum([unigrams[w] for w in words]) / len(words)
 
-        unigrams = {}
-        for translate in translations:
-            for words in translate.split():
-                if unigrams.get(words, None) is None:
-                    unigrams[words] = 1
-                else:
-                    unigrams[words] += 1
+            unigrams = {}
+            for translate in translations:
+                for words in translate.split():
+                    if unigrams.get(words, None) is None:
+                        unigrams[words] = 1
+                    else:
+                        unigrams[words] += 1
 
-        maxvalue = 0
-        result = []
-        for i, translate in enumerate(translations):
-            value = calc_value(translate, unigrams)
-            if value > maxvalue:
-                maxvalue = value
-                result = [i]
+            maxvalue = 0
+            result = []
+            for i, translate in enumerate(translations):
+                value = calc_value(translate, unigrams)
+                if value > maxvalue:
+                    maxvalue = value
+                    result = [i]
 
-        return result
+            return result
 
-    def translate(self, response):
         input_row = response.meta['input_row'][TRANSLATE_WORD_INDEX]
         # common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
         common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
@@ -104,7 +104,7 @@ class MultitranSpider(scrapy.Spider):
                 block_number += 1
 
         # Add recommended flag to every translates
-        recommended_translation_indexes = self.recommend_translation(translates)
+        recommended_translation_indexes = recommend_translation(translates)
         for i, o in enumerate(output):
             o.append('X' if i in recommended_translation_indexes else 'O')
 
