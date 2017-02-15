@@ -68,8 +68,9 @@ class MultitranSpider(scrapy.Spider):
             return selector.xpath("text()").extract()
 
         def get_all_leaf_nodes(selector, prev_results=[]):
+            xpath = 'descendant-or-self::node()'
             results = []
-            for child in selector.xpath('*'):
+            for child in selector.xpath('*[text() or node()]'):
                 children = get_all_leaf_nodes(child)
                 results.append([get_text(child)] if children.__len__() == 0 else [get_text(child)] + children)
 
