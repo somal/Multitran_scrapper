@@ -85,7 +85,6 @@ class MultitranSpider(scrapy.Spider):
                         nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
                     for translate in common_row.xpath(translate_xpath):
-
                         output_array = response.meta['input_row'].copy()
                         output_array.append(translate.extract())
                         output_array.append(dictionary[0])
