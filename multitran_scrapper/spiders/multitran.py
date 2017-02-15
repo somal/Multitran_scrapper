@@ -76,26 +76,25 @@ class MultitranSpider(scrapy.Spider):
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
             if len(dictionary) > 0:
-                if dictionary[0] in EXCEPTED_DICTIONARIES:
-                    continue
+                if not dictionary[0] in EXCEPTED_DICTIONARIES:
+                    # NX grams detection
+                    nx_gramms_common = response.xpath(nx_gramms_сommon_xpath)
+                    nx_gramms_status = nx_gramms_common.xpath(nx_gramms_status_xpath).extract()
+                    nx_gramms = 'цельное слово' if len(nx_gramms_status) == 0 else nx_gramms_status[
+                                                                                       0] + " : " + "|".join(
+                        nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
-                # NX grams detection
-                nx_gramms_common = response.xpath(nx_gramms_сommon_xpath)
-                nx_gramms_status = nx_gramms_common.xpath(nx_gramms_status_xpath).extract()
-                nx_gramms = 'цельное слово' if len(nx_gramms_status) == 0 else nx_gramms_status[0] + " : " + "|".join(
-                    nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
+                    for translate in common_row.xpath(translate_xpath):
+                        output_array = response.meta['input_row'].copy()
+                        output_array.append(translate.extract())
+                        output_array.append(dictionary[0])
+                        output_array.append(str(block_number))
+                        output_array.append(block_name)
+                        output_array.append(nx_gramms)
+                        output_array = [x.strip() for x in output_array]
+                        output.append(output_array)
 
-                for translate in common_row.xpath(translate_xpath):
-                    output_array = response.meta['input_row'].copy()
-                    output_array.append(translate.extract())
-                    output_array.append(dictionary[0])
-                    output_array.append(str(block_number))
-                    output_array.append(block_name)
-                    output_array.append(nx_gramms)
-                    output_array = [x.strip() for x in output_array]
-                    output.append(output_array)
-
-                    translates.append(translate.extract())
+                        translates.append(translate.extract())
             else:
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
