@@ -11,7 +11,7 @@ CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
 OUTPUT_CSV_NAME = 'output.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
-EXCEPTED_DICTIONARIES = ['Сленг', 'Разговорное выражение', 'табу']  # Dictionaries which shouldn't be in output
+EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
 
 
 class MultitranSpider(scrapy.Spider):
