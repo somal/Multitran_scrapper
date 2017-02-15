@@ -64,6 +64,15 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
+        def get_all_leaf_nodes(selector, prev_results=[]):
+            results = []
+            for child in selector.xpath('*'):
+                children = get_all_leaf_nodes(child)
+                if children.__len__() == 0:
+                    results.append(child.extract())
+
+            return results + prev_results
+
         common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
         translate_xpath = 'td[@class="trans"]/a/text()'
         dict_xpath = 'td[@class="subj"]/a/text()'
