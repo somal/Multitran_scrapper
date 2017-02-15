@@ -64,8 +64,6 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
-        input_row = response.meta['input_row'][TRANSLATE_WORD_INDEX]
-        # common_row_xpath = '//*/tr/td/table/tr/td/table/tr/td/table/tr/td/table/tr'
         common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
         translate_xpath = 'td[@class="trans"]/a/text()'
         dict_xpath = 'td[@class="subj"]/a/text()'
