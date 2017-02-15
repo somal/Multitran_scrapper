@@ -64,17 +64,19 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
+        def get_text(selector):
+            return selector.xpath("text()").extract()
+
         def get_all_leaf_nodes(selector, prev_results=[]):
             results = []
             for child in selector.xpath('*'):
                 children = get_all_leaf_nodes(child)
-                if children.__len__() == 0:
-                    results.append(child.extract())
+                results.append([get_text(child)] if children.__len__() == 0 else [get_text(child)] + children)
 
             return results + prev_results
 
         common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
-        translate_xpath = 'td[@class="trans"]/a/text()'
+        translate_xpath = 'td[@class="trans"]'
         dict_xpath = 'td[@class="subj"]/a/text()'
         nx_gramms_сommon_xpath = "//*/div[@class='middle_col'][3]"
         nx_gramms_status_xpath = "p[child::a]/text()"
@@ -94,16 +96,17 @@ class MultitranSpider(scrapy.Spider):
                         nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
                     for translate in common_row.xpath(translate_xpath):
-                        output_array = response.meta['input_row'].copy()
-                        output_array.append(translate.extract())
-                        output_array.append(dictionary[0])
-                        output_array.append(str(block_number))
-                        output_array.append(block_name)
-                        output_array.append(nx_gramms)
-                        output_array = [x.strip() for x in output_array]
-                        output.append(output_array)
-
-                        translates.append(translate.extract())
+                        print(get_all_leaf_nodes(translate))
+                        # output_array = response.meta['input_row'].copy()
+                        # output_array.append(translate.extract())
+                        # output_array.append(dictionary[0])
+                        # output_array.append(str(block_number))
+                        # output_array.append(block_name)
+                        # output_array.append(nx_gramms)
+                        # output_array = [x.strip() for x in output_array]
+                        # output.append(output_array)
+                        #
+                        # translates.append(translate.extract())
             else:
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
