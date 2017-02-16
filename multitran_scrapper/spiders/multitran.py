@@ -41,7 +41,7 @@ class MultitranSpider(scrapy.Spider):
                 i += 1
         return requests
 
-    def parse(self, response):
+    def write_translations(self, translations, output):
         def recommend_translation(translations):
             def calc_value(translate, unigrams):
                 words = translate.split()
@@ -64,6 +64,16 @@ class MultitranSpider(scrapy.Spider):
                     result = [i]
 
             return result
+
+        # Add recommended flag to every translates
+        recommended_translation_indexes = recommend_translation(translations)
+        for i, o in enumerate(output):
+            o.append('X' if i in recommended_translation_indexes else 'O')
+
+        # Write ready-to-use data to csv file
+        self.output_writer.writerows(output)
+
+    def parse(self, response):
 
         def get_selector_tag(selector):
             return selector.xpath('name()').extract_first()
@@ -141,18 +151,14 @@ class MultitranSpider(scrapy.Spider):
                                 author_href = ''
                                 author = ''
             else:
+                self.write_translations(translates, output)
+                translates = []
+                output = []
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
                 block_number += 1
 
-        # Add recommended flag to every translates
-        recommended_translation_indexes = recommend_translation(translates)
-        for i, o in enumerate(output):
-            o.append('X' if i in recommended_translation_indexes else 'O')
-
-        # Write ready-to-use data to csv file
-        self.output_writer.writerows(output)
-        print(response.meta['index'])
+        self.write_translations(translates, output)
 
     def close(self, reason):
         self.input_file.close()
