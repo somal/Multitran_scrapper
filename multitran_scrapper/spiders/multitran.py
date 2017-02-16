@@ -97,6 +97,7 @@ class MultitranSpider(scrapy.Spider):
 
                     translation_parts = []
                     all_leaf_nodes = get_all_leaf_nodes(common_row.xpath(translate_xpath))
+                    comment = ''
                     for node in all_leaf_nodes:
                         flag_full_translation = False
                         node_tag = get_selector_tag(node)
@@ -109,6 +110,14 @@ class MultitranSpider(scrapy.Spider):
                                 flag_full_translation = True
                             if flag_full_translation:
                                 translation_value = "".join(translation_parts)
+
+                                try_find_comment = re.findall('(?P<translate_value>.*)\((?P<comment>.*)\)',
+                                                              translation_value)
+                                if try_find_comment.__len__() > 0:
+                                    translation_value, comment = try_find_comment[0]
+                                else:
+                                    comment = ''
+
                                 output_array = response.meta['input_row'].copy()
                                 output_array.append(translation_value)
                                 output_array.append(dictionary[0])
@@ -118,6 +127,7 @@ class MultitranSpider(scrapy.Spider):
 
                                 output_array.append(author)
                                 output_array.append(author_href)
+                                output_array.append(comment)
                                 output_array = [x.strip() for x in output_array]
                                 output.append(output_array)
 
