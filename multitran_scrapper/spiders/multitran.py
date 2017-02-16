@@ -65,9 +65,6 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
-        def get_text(selector):
-            return selector.xpath("text()").extract()
-
         def get_selector_tag(selector):
             return selector.xpath('name()').extract_first()
 
@@ -113,7 +110,7 @@ class MultitranSpider(scrapy.Spider):
 
                                 try_find_comment = re.findall('(?P<translate_value>.*)\((?P<comment>.*)\)',
                                                               translation_value)
-                                if try_find_comment.__len__() > 0:
+                                if len(try_find_comment) > 0:
                                     translation_value, comment = try_find_comment[0]
                                 else:
                                     comment = ''
@@ -139,7 +136,7 @@ class MultitranSpider(scrapy.Spider):
                             author_href = node.xpath('@href').extract_first()
                             author = re.findall('/m\.exe\?a=[0-9]*&[amp;]?UserName=(?P<author_name>.*)', author_href)
                             print(author_href)
-                            if author.__len__() > 0:
+                            if len(author) > 0:
                                 author = author[0]
                             else:
                                 author_href = ''
