@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import csv
+
 import scrapy
 from scrapy import Request
-import csv
-import re
 
 # Settings
 INPUT_CSV_NAME = 'input.csv'  # Path to input file with csv type
@@ -66,6 +66,9 @@ class MultitranSpider(scrapy.Spider):
 
         def get_text(selector):
             return selector.xpath("text()").extract()
+
+        def get_selector_name(selector):
+            return selector.xpath('name()').extract_first()
 
         def get_all_leaf_nodes(selector):
             all_leaf_xpath = 'descendant-or-self::node()'
