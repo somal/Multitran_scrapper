@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-import scrapy
-from scrapy import Request
 import csv
 import re
 
+import scrapy
+from scrapy import Request
+
 # Settings
-INPUT_CSV_NAME = 'input.csv'  # Path to input file with csv type
+INPUT_CSV_NAME = 'tables/input.csv'  # Path to input file with csv type
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
-OUTPUT_CSV_NAME = 'output_tmp.csv'  # Path to output file with csv type
+OUTPUT_CSV_NAME = 'tables/output1.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
 EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
 
@@ -40,7 +41,7 @@ class MultitranSpider(scrapy.Spider):
                 i += 1
         return requests
 
-    def parse(self, response):
+    def write_translations(self, translations, output):
         def recommend_translation(translations):
             def calc_value(translate, unigrams):
                 words = translate.split()
@@ -64,8 +65,25 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
+        # Add recommended flag to every translates
+        recommended_translation_indexes = recommend_translation(translations)
+        for i, o in enumerate(output):
+            o.append('X' if i in recommended_translation_indexes else 'O')
+
+        # Write ready-to-use data to csv file
+        self.output_writer.writerows(output)
+
+    def parse(self, response):
+
+        def get_selector_tag(selector):
+            return selector.xpath('name()').extract_first()
+
+        def get_all_leaf_nodes(selector):
+            all_leaf_xpath = 'descendant-or-self::node()'
+            return selector.xpath(all_leaf_xpath)
+
         common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
-        translate_xpath = 'td[@class="trans"]/a/text()'
+        translate_xpath = 'td[@class="trans"]'
         dict_xpath = 'td[@class="subj"]/a/text()'
         nx_gramms_сommon_xpath = "//*/div[@class='middle_col'][3]"
         nx_gramms_status_xpath = "p[child::a]/text()"
@@ -84,30 +102,63 @@ class MultitranSpider(scrapy.Spider):
                                                                                        0] + " : " + "|".join(
                         nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
-                    for translate in common_row.xpath(translate_xpath):
-                        output_array = response.meta['input_row'].copy()
-                        output_array.append(translate.extract())
-                        output_array.append(dictionary[0])
-                        output_array.append(str(block_number))
-                        output_array.append(block_name)
-                        output_array.append(nx_gramms)
-                        output_array = [x.strip() for x in output_array]
-                        output.append(output_array)
+                    translation_parts = []
+                    all_leaf_nodes = get_all_leaf_nodes(common_row.xpath(translate_xpath))
+                    comment = ''
+                    for node in all_leaf_nodes:
+                        flag_full_translation = False
+                        node_tag = get_selector_tag(node)
+                        if node_tag is None:
+                            node_value = node.extract()
+                            if node_value.strip() == ";":
+                                flag_full_translation = True
+                            if node == all_leaf_nodes[-1]:
+                                translation_parts.append(node_value)
+                                flag_full_translation = True
+                            if flag_full_translation:
+                                translation_value = "".join(translation_parts)
 
-                        translates.append(translate.extract())
+                                try_find_comment = re.findall('(?P<translate_value>.*)\((?P<comment>.*)\)',
+                                                              translation_value)
+                                if len(try_find_comment) > 0:
+                                    translation_value, comment = try_find_comment[0]
+                                else:
+                                    comment = ''
+
+                                output_array = response.meta['input_row'].copy()
+                                output_array.append(translation_value)
+                                output_array.append(dictionary[0])
+                                output_array.append(str(block_number))
+                                output_array.append(block_name)
+                                output_array.append(nx_gramms)
+
+                                output_array.append(author)
+                                output_array.append(author_href)
+                                output_array.append(comment)
+                                output_array = [x.strip() for x in output_array]
+                                output.append(output_array)
+
+                                translates.append(translation_value)
+                                translation_parts = []
+                            else:
+                                translation_parts.append(node_value)
+                        elif node_tag == "a":
+                            author_href = node.xpath('@href').extract_first()
+                            author = re.findall('/m\.exe\?a=[0-9]*&[amp;]?UserName=(?P<author_name>.*)', author_href)
+                            if len(author) > 0:
+                                author = author[0]
+                            else:
+                                author_href = ''
+                                author = ''
             else:
+                self.write_translations(translates, output)
+                translates = []
+                output = []
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
                 block_number += 1
 
-        # Add recommended flag to every translates
-        recommended_translation_indexes = recommend_translation(translates)
-        for i, o in enumerate(output):
-            o.append('X' if i in recommended_translation_indexes else 'O')
-
-        # Write ready-to-use data to csv file
-        self.output_writer.writerows(output)
-        print(response.meta['index'])
+        self.write_translations(translates, output)
 
     def close(self, reason):
         self.input_file.close()
