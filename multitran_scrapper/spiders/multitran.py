@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import csv
+import re
 
 import scrapy
 from scrapy import Request
@@ -64,9 +65,6 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
-        def get_text(selector):
-            return selector.xpath("text()").extract()
-
         def get_selector_tag(selector):
             return selector.xpath('name()').extract_first()
 
@@ -96,6 +94,7 @@ class MultitranSpider(scrapy.Spider):
 
                     translation_parts = []
                     all_leaf_nodes = get_all_leaf_nodes(common_row.xpath(translate_xpath))
+                    comment = ''
                     for node in all_leaf_nodes:
                         flag_full_translation = False
                         node_tag = get_selector_tag(node)
@@ -108,12 +107,24 @@ class MultitranSpider(scrapy.Spider):
                                 flag_full_translation = True
                             if flag_full_translation:
                                 translation_value = "".join(translation_parts)
+
+                                try_find_comment = re.findall('(?P<translate_value>.*)\((?P<comment>.*)\)',
+                                                              translation_value)
+                                if len(try_find_comment) > 0:
+                                    translation_value, comment = try_find_comment[0]
+                                else:
+                                    comment = ''
+
                                 output_array = response.meta['input_row'].copy()
                                 output_array.append(translation_value)
                                 output_array.append(dictionary[0])
                                 output_array.append(str(block_number))
                                 output_array.append(block_name)
                                 output_array.append(nx_gramms)
+
+                                output_array.append(author)
+                                output_array.append(author_href)
+                                output_array.append(comment)
                                 output_array = [x.strip() for x in output_array]
                                 output.append(output_array)
 
@@ -121,7 +132,14 @@ class MultitranSpider(scrapy.Spider):
                                 translation_parts = []
                             else:
                                 translation_parts.append(node_value)
-
+                        elif node_tag == "a":
+                            author_href = node.xpath('@href').extract_first()
+                            author = re.findall('/m\.exe\?a=[0-9]*&[amp;]?UserName=(?P<author_name>.*)', author_href)
+                            if len(author) > 0:
+                                author = author[0]
+                            else:
+                                author_href = ''
+                                author = ''
             else:
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
