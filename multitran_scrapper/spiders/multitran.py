@@ -135,7 +135,6 @@ class MultitranSpider(scrapy.Spider):
                         elif node_tag == "a":
                             author_href = node.xpath('@href').extract_first()
                             author = re.findall('/m\.exe\?a=[0-9]*&[amp;]?UserName=(?P<author_name>.*)', author_href)
-                            print(author_href)
                             if len(author) > 0:
                                 author = author[0]
                             else:
