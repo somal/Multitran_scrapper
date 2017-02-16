@@ -67,7 +67,7 @@ class MultitranSpider(scrapy.Spider):
         def get_text(selector):
             return selector.xpath("text()").extract()
 
-        def get_selector_name(selector):
+        def get_selector_tag(selector):
             return selector.xpath('name()').extract_first()
 
         def get_all_leaf_nodes(selector):
@@ -94,18 +94,34 @@ class MultitranSpider(scrapy.Spider):
                                                                                        0] + " : " + "|".join(
                         nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
-                    for translate in common_row.xpath(translate_xpath):
-                        print(get_all_leaf_nodes(translate))
-                        # output_array = response.meta['input_row'].copy()
-                        # output_array.append(translate.extract())
-                        # output_array.append(dictionary[0])
-                        # output_array.append(str(block_number))
-                        # output_array.append(block_name)
-                        # output_array.append(nx_gramms)
-                        # output_array = [x.strip() for x in output_array]
-                        # output.append(output_array)
-                        #
-                        # translates.append(translate.extract())
+                    translation_parts = []
+                    all_leaf_nodes = get_all_leaf_nodes(common_row.xpath(translate_xpath))
+                    for node in all_leaf_nodes:
+                        flag_full_translation = False
+                        node_tag = get_selector_tag(node)
+                        if node_tag is None:
+                            node_value = node.extract()
+                            if node_value.strip() == ";":
+                                flag_full_translation = True
+                            if node == all_leaf_nodes[-1]:
+                                translation_parts.append(node_value)
+                                flag_full_translation = True
+                            if flag_full_translation:
+                                translation_value = "".join(translation_parts)
+                                output_array = response.meta['input_row'].copy()
+                                output_array.append(translation_value)
+                                output_array.append(dictionary[0])
+                                output_array.append(str(block_number))
+                                output_array.append(block_name)
+                                output_array.append(nx_gramms)
+                                output_array = [x.strip() for x in output_array]
+                                output.append(output_array)
+
+                                translates.append(translation_value)
+                                translation_parts = []
+                            else:
+                                translation_parts.append(node_value)
+
             else:
                 block_name = "".join(common_row.xpath('td[@class="gray"]/descendant-or-self::text()').extract())
                 block_name = block_name[:block_name.find("|")]
