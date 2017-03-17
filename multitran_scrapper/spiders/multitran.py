@@ -130,7 +130,7 @@ class MultitranSpider(scrapy.Spider):
                                 output_array.append(dictionary[0])
                                 output_array.append(str(block_number))
                                 output_array.append(block_name)
-                                output_array.append(nx_gramms)
+                                # output_array.append(nx_gramms)
 
                                 output_array.append(author)
                                 output_array.append(author_href)
