@@ -13,7 +13,7 @@ OUTPUT_CSV_FOLDER = 'dictionaries'  # Path to output file with csv type
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran_all_dictionaries"
-    host = 'http://www.multitran.com/'
+    host = 'http://www.multitran.com'
 
     def __init__(self):
         self.output_file = open('dictionaries.csv', 'w')
@@ -29,17 +29,26 @@ class MultitranSpider(scrapy.Spider):
         for dictionary in response.xpath(dictionary_xpath)[1:-1]:
             name = dictionary.xpath('text()').extract()[0]
             link = dictionary.xpath('@href').extract()[0]
-            print("{} {}\n".format(name, link))
+            # print("{} {}\n".format(name, link))
             yield Request(url=self.host + link, callback=self.dictionary_parser, meta={'name': name})
 
     def dictionary_parser(self, response):
         name = response.meta['name']
         ROW_XPATH = '//*/tr'
-        COLUMN_XPATH = 'td[@class="termsforsubject"]/a/text()'
         for row in response.xpath(ROW_XPATH):
-            columns = row.xpath(COLUMN_XPATH)
-            self.output_writer.writerow([name] + columns.extract())
-            break
+            row_value = [None] * 5
+            row_value[0] = [name]
+            row_value[1] = row.xpath('td[@class="termsforsubject"][1]/a/text()').extract()
+            row_value[2] = row.xpath('td[@class="termsforsubject"][2]/a/text()').extract()
+            row_value[3] = row.xpath('td[@class="termsforsubject"][3]/a/i/text()').extract()
+            row_value[4] = row.xpath('td[@class="termsforsubject"][3]/a/@href').extract()
+            if len(row_value[1]) > 0:
+                self.output_writer.writerow([i[0] if len(i) > 0 else " " for i in row_value])
+                # break
+        next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
+        if len(next_link) > 0:
+            print(self.host + next_link[0])
+            yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
 
     def close(self, reason):
         self.output_file.close()
