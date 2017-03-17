@@ -15,6 +15,7 @@ TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others c
 EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
 
 ONLY_RECOMMENDATED_TRANSLATIONS = True
+COLUMNS =['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author', 'Comment']
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran"
@@ -24,6 +25,7 @@ class MultitranSpider(scrapy.Spider):
         self.input_file = open(INPUT_CSV_NAME, 'r')
         self.input_reader = csv.reader(self.input_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                        quoting=csv.QUOTE_ALL)
+
         self.output_file = open(OUTPUT_CSV_NAME, 'w')
         self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                         quoting=csv.QUOTE_ALL)
