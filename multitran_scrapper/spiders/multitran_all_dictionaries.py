@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+import csv
+
+import scrapy
+from scrapy import Request
+
+# Settings
+# Delimiter and quotechar are parameters of csv file. You should know it if you created the file
+CSV_DELIMITER = '	'
+CSV_QUOTECHAR = '"'  # '|'
+OUTPUT_CSV_FOLDER = 'dictionaries'  # Path to output file with csv type
+
+
+class MultitranSpider(scrapy.Spider):
+    name = "multitran_all_dictionaries"
+    host = 'http://www.multitran.com/'
+
+    def generate_new_output_file(self, dictionary_name):
+        self.output_file = open("/".join([OUTPUT_CSV_FOLDER, dictionary_name]), 'w')
+        self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
+                                        quoting=csv.QUOTE_ALL)
+
+    def start_requests(self):
+        return [Request("http://www.multitran.com/m.exe?CL=1&s&l1=1&l2=2&SHL=2", callback=self.parser)]
+
+    def parser(self, response):
+        self.f = open('tmp.txt', 'w')
+        dictionary_xpath = '//*/tr/td[1]/a'
+        for dictionary in response.xpath(dictionary_xpath)[1:-1]:
+            name = dictionary.xpath('text()').extract()[0]
+            link = dictionary.xpath('@href').extract()[0]
+            print("{} {}\n".format(name, link))
+            yield Request(url=self.host + link, callback=self.dictionary_parser, meta={'name': name})
+
+    def dictionary_parser(self, response):
+        name = response.meta['name']
+        self.generate_new_output_file(name)
+        ROW_XPATH = ''
+        for row in response.xpath(ROW_XPATH):
+            pass
+
+    def close(self, reason):
+        self.output_file.close()
