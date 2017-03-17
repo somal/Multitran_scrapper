@@ -14,6 +14,8 @@ OUTPUT_CSV_NAME = 'tables/output1.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
 EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
 
+ONLY_RECOMMENDATED_TRANSLATIONS = True
+COLUMNS =['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author', 'Comment']
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran"
@@ -23,6 +25,7 @@ class MultitranSpider(scrapy.Spider):
         self.input_file = open(INPUT_CSV_NAME, 'r')
         self.input_reader = csv.reader(self.input_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                        quoting=csv.QUOTE_ALL)
+
         self.output_file = open(OUTPUT_CSV_NAME, 'w')
         self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                         quoting=csv.QUOTE_ALL)
@@ -67,8 +70,11 @@ class MultitranSpider(scrapy.Spider):
 
         # Add recommended flag to every translates
         recommended_translation_indexes = recommend_translation(translations)
-        for i, o in enumerate(output):
-            o.append('X' if i in recommended_translation_indexes else 'O')
+        if ONLY_RECOMMENDATED_TRANSLATIONS:
+            output = [output[i] for i in recommended_translation_indexes]
+        else:
+            for i, o in enumerate(output):
+                o.append('X' if i in recommended_translation_indexes else 'O')
 
         # Write ready-to-use data to csv file
         self.output_writer.writerows(output)
@@ -130,7 +136,7 @@ class MultitranSpider(scrapy.Spider):
                                 output_array.append(dictionary[0])
                                 output_array.append(str(block_number))
                                 output_array.append(block_name)
-                                output_array.append(nx_gramms)
+                                # output_array.append(nx_gramms)
 
                                 output_array.append(author)
                                 output_array.append(author_href)
