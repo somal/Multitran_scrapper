@@ -14,6 +14,7 @@ OUTPUT_CSV_NAME = 'tables/output1.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
 EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
 
+ONLY_RECOMMENDATED_TRANSLATIONS = True
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran"
@@ -67,8 +68,11 @@ class MultitranSpider(scrapy.Spider):
 
         # Add recommended flag to every translates
         recommended_translation_indexes = recommend_translation(translations)
-        for i, o in enumerate(output):
-            o.append('X' if i in recommended_translation_indexes else 'O')
+        if ONLY_RECOMMENDATED_TRANSLATIONS:
+            output = [output[i] for i in recommended_translation_indexes]
+        else:
+            for i, o in enumerate(output):
+                o.append('X' if i in recommended_translation_indexes else 'O')
 
         # Write ready-to-use data to csv file
         self.output_writer.writerows(output)
