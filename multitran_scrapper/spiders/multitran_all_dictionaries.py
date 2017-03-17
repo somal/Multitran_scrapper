@@ -15,8 +15,8 @@ class MultitranSpider(scrapy.Spider):
     name = "multitran_all_dictionaries"
     host = 'http://www.multitran.com/'
 
-    def generate_new_output_file(self, dictionary_name):
-        self.output_file = open("/".join([OUTPUT_CSV_FOLDER, dictionary_name]), 'w')
+    def __init__(self):
+        self.output_file = open('dictionaries.csv', 'w')
         self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                         quoting=csv.QUOTE_ALL)
 
@@ -34,10 +34,12 @@ class MultitranSpider(scrapy.Spider):
 
     def dictionary_parser(self, response):
         name = response.meta['name']
-        self.generate_new_output_file(name)
-        ROW_XPATH = ''
+        ROW_XPATH = '//*/tr'
+        COLUMN_XPATH = 'td[@class="termsforsubject"]/a/text()'
         for row in response.xpath(ROW_XPATH):
-            pass
+            columns = row.xpath(COLUMN_XPATH)
+            self.output_writer.writerow([name] + columns.extract())
+            break
 
     def close(self, reason):
         self.output_file.close()
