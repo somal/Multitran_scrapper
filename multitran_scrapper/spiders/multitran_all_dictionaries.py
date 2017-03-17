@@ -47,7 +47,6 @@ class MultitranSpider(scrapy.Spider):
                 # break
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
         if len(next_link) > 0:
-            print(self.host + next_link[0])
             yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
 
     def close(self, reason):
