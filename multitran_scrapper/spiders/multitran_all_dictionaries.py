@@ -37,14 +37,21 @@ class MultitranSpider(scrapy.Spider):
         ROW_XPATH = '//*/tr'
         for row in response.xpath(ROW_XPATH):
             row_value = [None] * 5
-            row_value[0] = [name]
-            row_value[1] = row.xpath('td[@class="termsforsubject"][1]/a/text()').extract()
-            row_value[2] = row.xpath('td[@class="termsforsubject"][2]/a/text()').extract()
+            row_value[0] = name
+            row_value[1] = "".join(
+                row.xpath('td[@class="termsforsubject"][1]/descendant-or-self::node()/text()').extract())
+            row_value[2] = "".join(
+                row.xpath('td[@class="termsforsubject"][2]/descendant-or-self::node()/text()').extract())
             row_value[3] = row.xpath('td[@class="termsforsubject"][3]/a/i/text()').extract()
             row_value[4] = row.xpath('td[@class="termsforsubject"][3]/a/@href').extract()
+            if len(row_value[3]) > 0:
+                row_value[3] = row_value[3][0]
+                row_value[4] = row_value[4][0]
+            else:
+                row_value[3] = ''
+                row_value[4] = ''
             if len(row_value[1]) > 0:
-                self.output_writer.writerow([i[0] if len(i) > 0 else " " for i in row_value])
-                # break
+                self.output_writer.writerow(row_value)
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
         if len(next_link) > 0:
             yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
