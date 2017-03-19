@@ -34,8 +34,8 @@ class Translation(DeclarativeBase):
     dictionary = Column('dictionary', String)
     word = Column('word', String)
     translation = Column('translation', String)
-    author_name = Column('dictionary', String, nullable=True)
-    author_link = Column('dictionary', String, nullable=True)
+    author_name = Column('author_name', String, nullable=True)
+    author_link = Column('author_link', String, nullable=True)
 
 
 class MultitranScrapperPipeline(object):
