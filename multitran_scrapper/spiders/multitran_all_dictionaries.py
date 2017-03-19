@@ -57,6 +57,7 @@ class MultitranSpider(scrapy.Spider):
                     values_dict = dict(
                         zip(['dictionary', 'word', 'translation', 'author_name', 'author_link'], row_value))
                     item = TranslationItem(values_dict)
+                    yield item
                 else:
                     self.output_writer.writerow(row_value)
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
