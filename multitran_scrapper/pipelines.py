@@ -31,6 +31,7 @@ def create_deals_table(engine):
 class Translation(DeclarativeBase):
     __tablename__ = "dictionaries"
 
+    id = Column(Integer, primary_key=True)
     dictionary = Column('dictionary', String)
     word = Column('word', String)
     translation = Column('translation', String)
