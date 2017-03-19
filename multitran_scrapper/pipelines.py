@@ -7,13 +7,53 @@
 
 from sqlalchemy import *
 from sqlalchemy.engine.url import URL
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 from .database import DATABASE
+
+DeclarativeBase = declarative_base()
+
+
+def db_connect():
+    """
+    Performs database connection using database settings from settings.py.
+    Returns sqlalchemy engine instance
+    """
+    return create_engine(URL(**DATABASE))
+
+
+def create_deals_table(engine):
+    """"""
+    DeclarativeBase.metadata.create_all(engine)
+
+
+class Translation(DeclarativeBase):
+    __tablename__ = "dictionaries"
+
+    dictionary = Column('dictionary', String)
+    word = Column('word', String)
+    translation = Column('translation', String)
+    author_name = Column('dictionary', String, nullable=True)
+    author_link = Column('dictionary', String, nullable=True)
 
 
 class MultitranScrapperPipeline(object):
     def __init__(self):
-        self.engine = create_engine(URL(**DATABASE))
+        engine = db_connect()
+        create_deals_table(engine)
+        self.Session = sessionmaker(bind=engine)
 
     def process_item(self, item, spider):
+        session = self.Session()
+        deal = Translation(**item)
+
+        try:
+            session.add(deal)
+            session.commit()
+        except:
+            session.rollback()
+        finally:
+            session.close()
+
         return item
