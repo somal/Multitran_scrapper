@@ -4,12 +4,15 @@ import csv
 import scrapy
 from scrapy import Request
 
+from multitran_scrapper.items import TranslationItem
+
 # Settings
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
 OUTPUT_CSV_FOLDER = 'dictionaries'  # Path to output file with csv type
-USE_DATABASE = False
+USE_DATABASE = True
+
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran_all_dictionaries"
@@ -51,7 +54,10 @@ class MultitranSpider(scrapy.Spider):
                 row_value[4] = ''
             if len(row_value[1]) > 0:
                 if USE_DATABASE:
-                    pass
+                    values_dict = dict(
+                        zip(['dictionary', 'word', 'translation', 'author_name', 'author_link'], row_value))
+                    item = TranslationItem(values_dict)
+                    print(item)
                 else:
                     self.output_writer.writerow(row_value)
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()

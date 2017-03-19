@@ -8,7 +8,7 @@
 import scrapy
 
 
-class MultitranScrapperItem(scrapy.Item):
+class TranslationItem(scrapy.Item):
     dictionary = scrapy.Field()
     word = scrapy.Field()
     translation = scrapy.Field()
