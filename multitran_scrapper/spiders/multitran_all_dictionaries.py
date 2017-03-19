@@ -4,11 +4,14 @@ import csv
 import scrapy
 from scrapy import Request
 
+from multitran_scrapper.items import TranslationItem
+
 # Settings
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
 OUTPUT_CSV_FOLDER = 'dictionaries'  # Path to output file with csv type
+USE_DATABASE = True
 
 
 class MultitranSpider(scrapy.Spider):
@@ -16,20 +19,19 @@ class MultitranSpider(scrapy.Spider):
     host = 'http://www.multitran.com'
 
     def __init__(self):
-        self.output_file = open('dictionaries.csv', 'w')
-        self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
-                                        quoting=csv.QUOTE_ALL)
+        if not USE_DATABASE:
+            self.output_file = open('dictionaries.csv', 'w')
+            self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
+                                            quoting=csv.QUOTE_ALL)
 
     def start_requests(self):
         return [Request("http://www.multitran.com/m.exe?CL=1&s&l1=1&l2=2&SHL=2", callback=self.parser)]
 
     def parser(self, response):
-        self.f = open('tmp.txt', 'w')
         dictionary_xpath = '//*/tr/td[1]/a'
         for dictionary in response.xpath(dictionary_xpath)[1:-1]:
             name = dictionary.xpath('text()').extract()[0]
             link = dictionary.xpath('@href').extract()[0]
-            # print("{} {}\n".format(name, link))
             yield Request(url=self.host + link, callback=self.dictionary_parser, meta={'name': name})
 
     def dictionary_parser(self, response):
@@ -51,10 +53,17 @@ class MultitranSpider(scrapy.Spider):
                 row_value[3] = ''
                 row_value[4] = ''
             if len(row_value[1]) > 0:
-                self.output_writer.writerow(row_value)
+                if USE_DATABASE:
+                    values_dict = dict(
+                        zip(['dictionary', 'word', 'translation', 'author_name', 'author_link'], row_value))
+                    item = TranslationItem(values_dict)
+                    yield item
+                else:
+                    self.output_writer.writerow(row_value)
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
         if len(next_link) > 0:
             yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
 
     def close(self, reason):
-        self.output_file.close()
+        if not USE_DATABASE:
+            self.output_file.close()

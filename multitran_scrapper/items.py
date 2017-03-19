@@ -8,7 +8,9 @@
 import scrapy
 
 
-class MultitranScrapperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class TranslationItem(scrapy.Item):
+    dictionary = scrapy.Field()
+    word = scrapy.Field()
+    translation = scrapy.Field()
+    author_name = scrapy.Field()
+    author_link = scrapy.Field()
