@@ -53,7 +53,6 @@ class MultitranScrapperPipeline(object):
             session.commit()
         except:
             session.rollback()
-            print('rollback')
         finally:
             session.close()
 
