@@ -23,8 +23,7 @@ def db_connect():
     return create_engine(URL(**DATABASE))
 
 
-def create_deals_table(engine):
-    """"""
+def create_translation_table(engine):
     DeclarativeBase.metadata.create_all(engine)
 
 
@@ -42,18 +41,19 @@ class Translation(DeclarativeBase):
 class MultitranScrapperPipeline(object):
     def __init__(self):
         engine = db_connect()
-        create_deals_table(engine)
+        create_translation_table(engine)
         self.Session = sessionmaker(bind=engine)
 
     def process_item(self, item, spider):
         session = self.Session()
-        deal = Translation(**item)
+        translation = Translation(**item)
 
         try:
-            session.add(deal)
+            session.add(translation)
             session.commit()
         except:
             session.rollback()
+            print('rollback')
         finally:
             session.close()
 
