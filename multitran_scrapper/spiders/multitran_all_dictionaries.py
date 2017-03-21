@@ -10,8 +10,7 @@ from multitran_scrapper.items import TranslationItem
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
-OUTPUT_CSV_FOLDER = 'dictionaries'  # Path to output file with csv type
-USE_DATABASE = True
+USE_DATABASE = False
 
 
 class MultitranSpider(scrapy.Spider):
