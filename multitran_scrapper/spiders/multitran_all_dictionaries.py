@@ -30,8 +30,8 @@ class MultitranSpider(scrapy.Spider):
     def parser(self, response):
         dictionary_xpath = '//*/tr/td[1]/a'
         for dictionary in response.xpath(dictionary_xpath)[1:-1]:
-            name = dictionary.xpath('text()').extract()[0]
-            link = dictionary.xpath('@href').extract()[0]
+            name = dictionary.xpath('text()').extract_first()
+            link = dictionary.xpath('@href').extract_first()
             yield Request(url=self.host + link, callback=self.dictionary_parser,
                           meta={'name': name, 'handled_translations': 0})
 
