@@ -66,7 +66,7 @@ class MultitranSpider(scrapy.Spider):
                     self.output_writer.writerow(row_value)
 
             # Check count of handled translation
-            if response.meta['handled_translation'] >= response.meta['max_count']:
+            if response.meta['handled_translations'] >= response.meta['max_count']:
                 END_FLAG = True
                 break
 
