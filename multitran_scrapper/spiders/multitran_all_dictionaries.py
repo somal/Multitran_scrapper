@@ -10,8 +10,7 @@ from multitran_scrapper.items import TranslationItem
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
-OUTPUT_CSV_FOLDER = 'dictionaries'  # Path to output file with csv type
-USE_DATABASE = True
+USE_DATABASE = False
 
 
 class MultitranSpider(scrapy.Spider):
@@ -29,15 +28,20 @@ class MultitranSpider(scrapy.Spider):
 
     def parser(self, response):
         dictionary_xpath = '//*/tr/td[1]/a'
+        TRANSLATION_COUNT_XPATH = 'ancestor::tr/td[2]/text()'
         for dictionary in response.xpath(dictionary_xpath)[1:-1]:
-            name = dictionary.xpath('text()').extract()[0]
-            link = dictionary.xpath('@href').extract()[0]
-            yield Request(url=self.host + link, callback=self.dictionary_parser, meta={'name': name})
+            name = dictionary.xpath('text()').extract_first()
+            link = dictionary.xpath('@href').extract_first()
+            count = int(dictionary.xpath(TRANSLATION_COUNT_XPATH).extract_first())
+            yield Request(url=self.host + link, callback=self.dictionary_parser,
+                          meta={'name': name, 'handled_translations': 0, 'max_count': count})
 
     def dictionary_parser(self, response):
+        END_FLAG = False
         name = response.meta['name']
         ROW_XPATH = '//*/tr'
         for row in response.xpath(ROW_XPATH):
+            response.meta['handled_translations'] += 1
             row_value = [None] * 5
             row_value[0] = name
             row_value[1] = "".join(
@@ -60,8 +64,14 @@ class MultitranSpider(scrapy.Spider):
                     yield item
                 else:
                     self.output_writer.writerow(row_value)
+
+            # Check count of handled translation
+            if response.meta['handled_translations'] >= response.meta['max_count']:
+                END_FLAG = True
+                break
+
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
-        if len(next_link) > 0:
+        if len(next_link) > 0 and not END_FLAG:
             yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
 
     def close(self, reason):
