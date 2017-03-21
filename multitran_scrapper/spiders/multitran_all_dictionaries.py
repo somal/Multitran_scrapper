@@ -28,11 +28,13 @@ class MultitranSpider(scrapy.Spider):
 
     def parser(self, response):
         dictionary_xpath = '//*/tr/td[1]/a'
+        TRANSLATION_COUNT_XPATH = 'ancestor::tr/td[2]/text()'
         for dictionary in response.xpath(dictionary_xpath)[1:-1]:
             name = dictionary.xpath('text()').extract_first()
             link = dictionary.xpath('@href').extract_first()
+            count = dictionary.xpath(TRANSLATION_COUNT_XPATH).extract_first()
             yield Request(url=self.host + link, callback=self.dictionary_parser,
-                          meta={'name': name, 'handled_translations': 0})
+                          meta={'name': name, 'handled_translations': 0, 'max_count': count})
 
     def dictionary_parser(self, response):
         name = response.meta['name']
