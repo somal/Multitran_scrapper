@@ -32,12 +32,14 @@ class MultitranSpider(scrapy.Spider):
         for dictionary in response.xpath(dictionary_xpath)[1:-1]:
             name = dictionary.xpath('text()').extract()[0]
             link = dictionary.xpath('@href').extract()[0]
-            yield Request(url=self.host + link, callback=self.dictionary_parser, meta={'name': name})
+            yield Request(url=self.host + link, callback=self.dictionary_parser,
+                          meta={'name': name, 'handled_translations': 0})
 
     def dictionary_parser(self, response):
         name = response.meta['name']
         ROW_XPATH = '//*/tr'
         for row in response.xpath(ROW_XPATH):
+            response.meta['handled_translations'] += 1
             row_value = [None] * 5
             row_value[0] = name
             row_value[1] = "".join(
