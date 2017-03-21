@@ -37,6 +37,7 @@ class MultitranSpider(scrapy.Spider):
                           meta={'name': name, 'handled_translations': 0, 'max_count': count})
 
     def dictionary_parser(self, response):
+        END_FLAG = False
         name = response.meta['name']
         ROW_XPATH = '//*/tr'
         for row in response.xpath(ROW_XPATH):
@@ -63,8 +64,14 @@ class MultitranSpider(scrapy.Spider):
                     yield item
                 else:
                     self.output_writer.writerow(row_value)
+
+            # Check count of handled translation
+            if response.meta['handled_translation'] >= response.meta['max_count']:
+                END_FLAG = True
+                break
+
         next_link = response.xpath('//*/a[contains(text(),">>")]/@href').extract()
-        if len(next_link) > 0:
+        if len(next_link) > 0 and not END_FLAG:
             yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
 
     def close(self, reason):
