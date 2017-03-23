@@ -3,6 +3,7 @@ import csv
 
 import scrapy
 from scrapy import Request
+from twisted.internet.error import TimeoutError
 
 from multitran_scrapper.items import TranslationItem
 
@@ -18,6 +19,7 @@ class MultitranSpider(scrapy.Spider):
     host = 'http://www.multitran.com'
 
     def __init__(self):
+        self.timeout_errors = open('timeout.txt', 'w')
         if not USE_DATABASE:
             self.output_file = open('dictionaries.csv', 'w')
             self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
@@ -74,6 +76,11 @@ class MultitranSpider(scrapy.Spider):
         if len(next_link) > 0 and not END_FLAG:
             yield Request(url=self.host + next_link[0], callback=self.dictionary_parser, meta=response.meta)
 
+    def errback_httpbin(self, failure):
+        if failure.check(TimeoutError):
+            self.timeout_errors.write("{}\n".format(failure.value.response.value))
+
     def close(self, reason):
+        self.timeout_errors.close()
         if not USE_DATABASE:
             self.output_file.close()
