@@ -11,7 +11,7 @@ from multitran_scrapper.items import TranslationItem
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
-USE_DATABASE = False
+USE_DATABASE = True
 
 
 class MultitranSpider(scrapy.Spider):
