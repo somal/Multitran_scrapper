@@ -67,7 +67,7 @@ pipeline = MultitranScrapperPipeline()
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
-USE_DATABASE = False
+USE_DATABASE = True
 
 
 class MultitranSpider(scrapy.Spider):
@@ -121,6 +121,8 @@ class MultitranSpider(scrapy.Spider):
                     db_status = pipeline.process_item(item)
                     if db_status:
                         response.meta['handled_translations'] += 1
+                    # else:
+                    #     self.logger.info('Exception')
                 else:
                     self.output_writer.writerow(row_value)
                     response.meta['handled_translations'] += 1
