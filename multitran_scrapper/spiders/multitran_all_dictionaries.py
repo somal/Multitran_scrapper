@@ -3,9 +3,65 @@ import csv
 
 import scrapy
 from scrapy import Request
+from sqlalchemy import *
+from sqlalchemy.engine.url import URL
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from twisted.internet.error import TimeoutError
 
 from multitran_scrapper.items import TranslationItem
+from .database import DATABASE
+
+DeclarativeBase = declarative_base()
+
+
+def db_connect():
+    """
+    Performs database connection using database settings from settings.py.
+    Returns sqlalchemy engine instance
+    """
+    return create_engine(URL(**DATABASE))
+
+
+def create_translation_table(engine):
+    DeclarativeBase.metadata.create_all(engine)
+
+
+class Translation(DeclarativeBase):
+    __tablename__ = "dictionaries_unique"
+
+    id = Column(Integer, primary_key=True)
+    dictionary = Column('dictionary', String)
+    word = Column('word', String)
+    translation = Column('translation', String)
+    author_name = Column('author_name', String, nullable=True)
+    author_link = Column('author_link', String, nullable=True)
+
+
+class MultitranScrapperPipeline(object):
+    def __init__(self):
+        engine = db_connect()
+        create_translation_table(engine)
+        self.Session = sessionmaker(bind=engine)
+
+    def process_item(self, item):
+        session = self.Session()
+        translation = Translation(**item)
+        result = True
+
+        try:
+            session.add(translation)
+            session.commit()
+        except:
+            session.rollback()
+            result = False
+        finally:
+            session.close()
+
+        return result
+
+
+pipeline = MultitranScrapperPipeline()
 
 # Settings
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
@@ -43,7 +99,6 @@ class MultitranSpider(scrapy.Spider):
         name = response.meta['name']
         ROW_XPATH = '//*/tr'
         for row in response.xpath(ROW_XPATH):
-            response.meta['handled_translations'] += 1
             row_value = [None] * 5
             row_value[0] = name
             row_value[1] = "".join(
@@ -63,9 +118,14 @@ class MultitranSpider(scrapy.Spider):
                     values_dict = dict(
                         zip(['dictionary', 'word', 'translation', 'author_name', 'author_link'], row_value))
                     item = TranslationItem(values_dict)
-                    yield item
+                    db_status = pipeline.process_item(item)
+                    if db_status:
+                        response.meta['handled_translations'] += 1
+                    # else:
+                    #     self.logger.info('Exception')
                 else:
                     self.output_writer.writerow(row_value)
+                    response.meta['handled_translations'] += 1
 
             # Check count of handled translation
             if response.meta['handled_translations'] >= response.meta['max_count']:
