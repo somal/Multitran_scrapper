@@ -22,8 +22,8 @@ USER_AGENT = 'Chrome/55.0.2883.87'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 5
-LOG_LEVEL='INFO'
+CONCURRENT_REQUESTS = 32
+# LOG_LEVEL='INFO'
 DOWNLOAD_TIMEOUT = 240
 
 # Configure a delay for requests for the same website (default: 0)
