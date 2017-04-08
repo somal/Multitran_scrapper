@@ -22,8 +22,8 @@ USER_AGENT = 'Chrome/55.0.2883.87'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 32
-# LOG_LEVEL='INFO'
+CONCURRENT_REQUESTS = 5
+LOG_LEVEL='INFO'
 DOWNLOAD_TIMEOUT = 240
 
 # Configure a delay for requests for the same website (default: 0)
@@ -66,7 +66,9 @@ DOWNLOAD_TIMEOUT = 240
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {}
+ITEM_PIPELINES = {
+   'multitran_scrapper.pipelines.MultitranScrapperPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
