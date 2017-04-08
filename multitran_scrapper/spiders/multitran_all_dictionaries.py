@@ -99,7 +99,6 @@ class MultitranSpider(scrapy.Spider):
         name = response.meta['name']
         ROW_XPATH = '//*/tr'
         for row in response.xpath(ROW_XPATH):
-            response.meta['handled_translations'] += 1
             row_value = [None] * 5
             row_value[0] = name
             row_value[1] = "".join(
@@ -119,9 +118,12 @@ class MultitranSpider(scrapy.Spider):
                     values_dict = dict(
                         zip(['dictionary', 'word', 'translation', 'author_name', 'author_link'], row_value))
                     item = TranslationItem(values_dict)
-                    pipeline.process_item(item)
+                    db_status = pipeline.process_item(item)
+                    if db_status:
+                        response.meta['handled_translations'] += 1
                 else:
                     self.output_writer.writerow(row_value)
+                    response.meta['handled_translations'] += 1
 
             # Check count of handled translation
             if response.meta['handled_translations'] >= response.meta['max_count']:
