@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 """
+This script parses all dictionaries from Multitran.
+See dictionaries on http://www.multitran.com/m.exe?CL=1&s&l1=1&l2=2&SHL=2
+Firstly, the parser goes to main list (above) and goes to every dictionary.
+    On dictionary page, it parses all available rows (words) and go to next page ('>>' on the page)
+        until count of handled translations less than count words in dictionary (parsed from main page)
+After parsing of translation, it stores into Item and use Pipeline for storing into DB.
+Pipeline uses SqlAlchemy for DB connections.
+DB has UNIQUE_CONSTRAINT on pair (word, dictionary) for duplicate disappearing.
 
+So process_item from pipeline try to store translation into DB.
+And if attempt is failed than we shouldn't increase count of handled translations (stored in response's meta).
+So it's the main reason of storing Item and Pipeline into the spider's file.
 
 """
 import csv
