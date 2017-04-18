@@ -1,4 +1,27 @@
 # -*- coding: utf-8 -*-
+"""
+It's the main parser of Multitran translation system.
+It has input csv file which contains words for translation as one column.
+
+*** Please, see Description.docx. It contains detailed description,
+    but it includes information of one-to-many translations (one word has several translations).
+    The last version of parser select only recommended translation and save only it to DB
+***
+
+For every word from input file, the parser creates several columns of information and saves to output csv file:
+  input_word | translation | dictionary of translation (из какого словаря взят перевод) | block_number | author_name | link on author | author's comment
+Some comments of data:
+ - any word has several translations from different blocks
+ - if you want to have only recommended translations, you should set ONLY_RECOMMENDATED_TRANSLATIONS = True, otherwise False
+
+
+ - output
+ - block
+ - link_of_author
+ - recomendation system
+
+
+"""
 import csv
 import re
 
@@ -15,7 +38,9 @@ TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others c
 EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
 
 ONLY_RECOMMENDATED_TRANSLATIONS = True
-COLUMNS =['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author', 'Comment']
+COLUMNS = ['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author',
+           'Comment']
+
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran"
