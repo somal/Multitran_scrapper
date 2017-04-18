@@ -205,6 +205,18 @@ class MultitranSpider(scrapy.Spider):
 
         self.write_translations(translates, output)
 
+    # This method will be called after all Requests or after FATAL error.
+    # Please, see about loggers and errors https://doc.scrapy.org/en/latest/topics/logging.html
+    #
+    # So it's some exit point (optional) (empty by default)
     def close(self, reason):
+        """
+        This method closes input/output files for correct I/O.
+        If you doesn't close file, then some data can be lost.
+
+        The method uses standard file closing.
+        :param reason: exit status of parsing
+        :return: None
+        """
         self.input_file.close()
         self.output_file.close()
