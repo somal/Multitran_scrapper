@@ -51,6 +51,7 @@ class Translation(DeclarativeBase):
     translation = Column('translation', String)
     author_name = Column('author_name', String, nullable=True)
     author_link = Column('author_link', String, nullable=True)
+    __table_args__ = (UniqueConstraint('dictionary', 'word', name='unique_constraint'),)  # Not tested
 
 
 class MultitranScrapperPipeline(object):
@@ -107,7 +108,7 @@ class MultitranSpider(scrapy.Spider):
         """
         dictionary_xpath = '//*/tr/td[1]/a'
         TRANSLATION_COUNT_XPATH = 'ancestor::tr/td[2]/text()'
-        for dictionary in response.xpath(dictionary_xpath)[1:-1]: # Cut out first and last system rows
+        for dictionary in response.xpath(dictionary_xpath)[1:-1]:  # Cut out first and last system rows
             name = dictionary.xpath('text()').extract_first()
             link = dictionary.xpath('@href').extract_first()
             count = int(dictionary.xpath(TRANSLATION_COUNT_XPATH).extract_first())
@@ -147,8 +148,8 @@ class MultitranSpider(scrapy.Spider):
                     db_status = pipeline.process_item(item)
                     if db_status:
                         response.meta['handled_translations'] += 1
-                    # else:
-                    #     self.logger.info('Exception')
+                        # else:
+                        #     self.logger.info('Exception')
                 else:
                     self.output_writer.writerow(row_value)
                     response.meta['handled_translations'] += 1
