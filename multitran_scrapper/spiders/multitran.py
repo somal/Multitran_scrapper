@@ -83,11 +83,18 @@ class MultitranSpider(scrapy.Spider):
                                         quoting=csv.QUOTE_ALL)
 
     def start_requests(self):
-        requests = []
-        i = 0
+        """
+        This method is a start point for parsing.
+        This method generates requests which will be handled by parse() (is written in Request.callback)
+        :return: list of Request
+        """
+        requests = []  # list which will stores all Requests
+        i = 0  # Simple iterator. Enumerate can not be used because the loop includes if clause
         for input_row in self.input_reader:
-            if len(input_row) > 0:
-                word = input_row[TRANSLATE_WORD_INDEX]
+            if len(input_row) > 0:  # Filter empy rows
+                word = input_row[TRANSLATE_WORD_INDEX]  # Word for translating
+                # Generates Requests. word is used for URL building.
+                # Meta is a service dictionary which can be used in callback. Usually it stores some additional info.
                 request = Request("http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2".format(word),
                                   callback=self.parse,
                                   meta={"input_row": input_row, 'index': i})
@@ -97,11 +104,29 @@ class MultitranSpider(scrapy.Spider):
         return requests
 
     def write_translations(self, translations, output):
+        """
+        This method is a post handling. It filters by recommendation system and stores it into output csv file.
+        It is called after every block handling.
+        :param translations: requested word translation list
+        :param output: list of all info for every translation (dictionary, authors, etc.). Translation = [o[1] for o in output], but separate list is more convinient way
+        :return: None
+        """
+
         def recommend_translation(translations):
+            """
+            It's the main method for recommendation system.
+            Now the parser calculate recommendation between words from one block.
+            The main idea is for every word (unigrams) calculates count of phrases which includes this word.
+                After it the method calculates avg by references for every phrase and select phrases with maximum value.
+            :param translations: list of different translations of the word.
+            :return: indexes of recommended translations from input list
+            """
+
             def calc_value(translate, unigrams):
                 words = translate.split()
                 return sum([unigrams[w] for w in words]) / len(words)
 
+            # For every word (unigrams) calculates count of references
             unigrams = {}
             for translate in translations:
                 for words in translate.split():
@@ -110,6 +135,7 @@ class MultitranSpider(scrapy.Spider):
                     else:
                         unigrams[words] += 1
 
+            # For every phrase calculates value based on unigrams's values and find argmax
             maxvalue = 0
             result = []
             for i, translate in enumerate(translations):
@@ -120,11 +146,12 @@ class MultitranSpider(scrapy.Spider):
 
             return result
 
-        # Add recommended flag to every translates
         recommended_translation_indexes = recommend_translation(translations)
         if ONLY_RECOMMENDATED_TRANSLATIONS:
+            # If ONLY_RECOMMENDATED than the parser stores only recommended translations. So it's filtering by precalculated indexes.
             output = [output[i] for i in recommended_translation_indexes]
         else:
+            # Else the parser marks translations using 'X' as recommended and 'O' otherwise.
             for i, o in enumerate(output):
                 o.append('X' if i in recommended_translation_indexes else 'O')
 
