@@ -2,7 +2,7 @@
 """
 This script parses all dictionaries from Multitran.
 See dictionaries on http://www.multitran.com/m.exe?CL=1&s&l1=1&l2=2&SHL=2
-Firstly, the parser goes to main list (above) and goes to every dictionary.
+Firstly, the parser goes to main page (above) and goes to every dictionary.
     On dictionary page, it parses all available rows (words) and go to next page ('>>' on the page)
         until count of handled translations less than count words in dictionary (parsed from main page)
 After parsing of translation, it stores into Item and use Pipeline for storing into DB.
@@ -12,6 +12,18 @@ DB has UNIQUE_CONSTRAINT on pair (word, dictionary) for duplicate disappearing.
 So process_item from pipeline try to store translation into DB.
 And if attempt is failed than we shouldn't increase count of handled translations (stored in response's meta).
 So it's the main reason of storing Item and Pipeline into the spider's file.
+
+DONE:
+ - The core of parser which goes on all dictionaries and on translations using button '>>' on every link
+ - Update dictionary handling exitpoint: parses all rows until count of stored (handled) translations less than dictionary's size
+    instead of continuously moving pressing '>>'
+ - Add TimeOut exception handler which is connected with long downloading
+ - Add support store in DB
+ - Update DB: add UNIQUE_CONSTRAINT for distinct rows storing
+ - Dump on 1 million values
+TO DO:
+ - Run, run, run!
+
 
 """
 import csv
