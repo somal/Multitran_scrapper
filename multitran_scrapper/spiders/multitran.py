@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 It's the main parser of Multitran translation system.
+
+DONE:
+ - Input/Output
+ - Core of auto-translation: parsing of multitran by specific word
+ - Recommendation system v 1.2
+
+TO DO:
+ - Update recommendation system using different blocks
+
+
 It has input csv file which contains words for translation as one column.
 
 *** Please, see Description.docx. It contains detailed description,
