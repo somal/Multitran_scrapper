@@ -24,9 +24,13 @@ DONE:
 TO DO:
  - Run, run, run!
 
+It hasn't input files, because the parser should download full Multitran without filtering.
+An output file - long csv file with all translations. The structure:
+    'dictionary', 'word', 'translation', 'author_name', 'author_link'
+
 
 """
-import csv
+import csv  # Standard library for table processing (I/O)
 
 import scrapy
 from scrapy import Request
