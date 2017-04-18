@@ -58,7 +58,6 @@ COLUMNS = ['Input word', 'Translations', 'Dictionary', 'Block number', 'Block na
 
 class MultitranSpider(scrapy.Spider):
     name = "multitran"
-    allowed_domains = ["multitran.ru"]
 
     def __init__(self):
         self.input_file = open(INPUT_CSV_NAME, 'r')
