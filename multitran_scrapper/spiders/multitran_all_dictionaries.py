@@ -38,11 +38,13 @@ from sqlalchemy import *
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from twisted.internet.error import TimeoutError
+from twisted.internet.error import TimeoutError  # It's used for TimeOut handling
 
-from multitran_scrapper.items import TranslationItem
-from .database import DATABASE
+from multitran_scrapper.items import TranslationItem  # The item for storing into DB
+from .database import \
+    DATABASE  # Local Python's file which includes only dictionary DATABASE with connection data in SQLAlchemy format
 
+# Standard SQLAlchemy part
 DeclarativeBase = declarative_base()
 
 
@@ -58,6 +60,7 @@ def create_translation_table(engine):
     DeclarativeBase.metadata.create_all(engine)
 
 
+# Description of table with constraint
 class Translation(DeclarativeBase):
     __tablename__ = "dictionaries_unique"
 
@@ -93,6 +96,7 @@ class MultitranScrapperPipeline(object):
         return result
 
 
+# Pipeline's initialization. Many pipeline shouldn't be.
 pipeline = MultitranScrapperPipeline()
 
 # Settings
@@ -103,31 +107,36 @@ USE_DATABASE = True  # Flag for DB use. For it you should create database.py wit
 
 
 class MultitranSpider(scrapy.Spider):
-    name = "multitran_all_dictionaries"
-    host = 'http://www.multitran.com'
+    name = "multitran_all_dictionaries"  # Name for crawling
+    host = 'http://www.multitran.com'  # Spider's service info. It will be used in script below.
 
     def __init__(self):
         self.timeout_errors = open('timeout.txt', 'w')  # The file for url storing when timeout error
+        # Storing into CSV file
         if not USE_DATABASE:
             self.output_file = open('dictionaries.csv', 'w')
             self.output_writer = csv.writer(self.output_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                             quoting=csv.QUOTE_ALL)
 
     def start_requests(self):
+        """
+        This method is a start point for parsing.
+        :return: list with one start Request which specifies on main page
+        """
         return [Request("http://www.multitran.com/m.exe?CL=1&s&l1=1&l2=2&SHL=2", callback=self.parser)]
 
     def parser(self, response):
         """
         The method which finds links of all dictionaries
-        :param response:
+        :param response: Scrapy's response
         :return: requests for every dictionaries
         """
-        dictionary_xpath = '//*/tr/td[1]/a'
+        DICTIONARY_XPATH = '//*/tr/td[1]/a'
         TRANSLATION_COUNT_XPATH = 'ancestor::tr/td[2]/text()'
-        for dictionary in response.xpath(dictionary_xpath)[1:-1]:  # Cut out first and last system rows
+        for dictionary in response.xpath(DICTIONARY_XPATH)[1:-1]:  # Cut out first and last service rows
             name = dictionary.xpath('text()').extract_first()
             link = dictionary.xpath('@href').extract_first()
-            count = int(dictionary.xpath(TRANSLATION_COUNT_XPATH).extract_first())
+            count = int(dictionary.xpath(TRANSLATION_COUNT_XPATH).extract_first())  # Size of dictionary
             yield Request(url=self.host + link, callback=self.dictionary_parser,
                           meta={'name': name, 'handled_translations': 0, 'max_count': count})
 
@@ -138,17 +147,18 @@ class MultitranSpider(scrapy.Spider):
         :return:
         """
         END_FLAG = False
-        name = response.meta['name']
         ROW_XPATH = '//*/tr'
+        name = response.meta['name']
         for row in response.xpath(ROW_XPATH):
             row_value = [None] * 5
             row_value[0] = name
             row_value[1] = "".join(
-                row.xpath('td[@class="termsforsubject"][1]/descendant-or-self::node()/text()').extract())
+                row.xpath('td[@class="termsforsubject"][1]/descendant-or-self::node()/text()').extract())  # Word
             row_value[2] = "".join(
-                row.xpath('td[@class="termsforsubject"][2]/descendant-or-self::node()/text()').extract())
-            row_value[3] = row.xpath('td[@class="termsforsubject"][3]/a/i/text()').extract()
-            row_value[4] = row.xpath('td[@class="termsforsubject"][3]/a/@href').extract()
+                row.xpath('td[@class="termsforsubject"][2]/descendant-or-self::node()/text()').extract())  # Translation
+            row_value[3] = row.xpath('td[@class="termsforsubject"][3]/a/i/text()').extract()  # Author's name
+            row_value[4] = row.xpath('td[@class="termsforsubject"][3]/a/@href').extract()  # Author's link
+            # Check type of data: useful (translations) or useless (service)
             if len(row_value[3]) > 0:
                 row_value[3] = row_value[3][0]
                 row_value[4] = row_value[4][0]
@@ -157,19 +167,22 @@ class MultitranSpider(scrapy.Spider):
                 row_value[4] = ''
             if len(row_value[1]) > 0:
                 if USE_DATABASE:
+                    # About zip: https://docs.python.org/3/library/functions.html#zip
                     values_dict = dict(
                         zip(['dictionary', 'word', 'translation', 'author_name', 'author_link'], row_value))
-                    item = TranslationItem(values_dict)
-                    # Try to store resulting translations into DB
-                    db_status = pipeline.process_item(item)
+                    item = TranslationItem(values_dict)  # Wrapper of data
+                    db_status = pipeline.process_item(item)  # Try to store resulting translations into DB
                     if db_status:
+                        # If saving is OK
                         response.meta['handled_translations'] += 1
                         # else:
                         #     self.logger.info('Exception')
                 else:
-                    self.output_writer.writerow(row_value)
-                    response.meta['handled_translations'] += 1
+                    self.output_writer.writerow(row_value)  # Save data to csv file
+                    response.meta[
+                        'handled_translations'] += 1  # We can't check UNIQUE_CONSTRAINT in csv and so always increase value
 
+            # Exitpoint of dictionary's parsing
             # Check count of handled translation
             if response.meta['handled_translations'] >= response.meta['max_count']:
                 END_FLAG = True
