@@ -66,9 +66,7 @@ DOWNLOAD_TIMEOUT = 240
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   'multitran_scrapper.pipelines.MultitranScrapperPipeline': 300,
-}
+ITEM_PIPELINES = {}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
