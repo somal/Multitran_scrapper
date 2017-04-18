@@ -47,6 +47,7 @@ Also you can except some dictionaries for some narrow parsing using EXCEPTED_DIC
 This script has two sides: engineering and analysis. All tasks connected with parsing are engineering. Recommendation system for translations is the analysis.
 
 # Recommendation translations
+See MultitranSpider.write_translations.recommend_translation
 """
 import csv  # Standard library for table processing (I/O)
 import re  # Standard library for regexp. It used for check author's link
