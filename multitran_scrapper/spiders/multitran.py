@@ -159,45 +159,59 @@ class MultitranSpider(scrapy.Spider):
         self.output_writer.writerows(output)
 
     def parse(self, response):
+        """
+        It's the main handler
+        :param response: Scrapy's response
+        :return:
+        """
 
         def get_selector_tag(selector):
+            """Returns selector tag name"""
             return selector.xpath('name()').extract_first()
 
         def get_all_leaf_nodes(selector):
+            """ Returns all leaf nodes using DFS"""
             all_leaf_xpath = 'descendant-or-self::node()'
             return selector.xpath(all_leaf_xpath)
 
-        common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'
-        translate_xpath = 'td[@class="trans"]'
-        dict_xpath = 'td[@class="subj"]/a/text()'
+        common_row_xpath = '//*/tr[child::td[@class="gray" or @class="trans"]]'  # XPath for every row in table
+        dict_xpath = 'td[@class="subj"]/a/text()'  # Finds dictionary for every row in table (dictionary for group of translations)
         nx_gramms_сommon_xpath = "//*/div[@class='middle_col'][3]"
         nx_gramms_status_xpath = "p[child::a]/text()"
         nx_gramms_words_xpath = "a[string-length(@title)>0]/text()"
+        translate_xpath = 'td[@class="trans"]'
         block_number = 0
         translates = []
         output = []
         for common_row in response.xpath(common_row_xpath):
             dictionary = common_row.xpath(dict_xpath).extract()
+            # Check type of row. If the row is translation row than go ahead
             if len(dictionary) > 0:
-                if not dictionary[0] in EXCEPTED_DICTIONARIES:
-                    # NX grams detection
+                if not dictionary[0] in EXCEPTED_DICTIONARIES:  # Check that dictionary is acceptable
+                    # Check type of phrase: it can be handled as solid or can be divided on several phrases/words
                     nx_gramms_common = response.xpath(nx_gramms_сommon_xpath)
-                    nx_gramms_status = nx_gramms_common.xpath(nx_gramms_status_xpath).extract()
+                    nx_gramms_status = nx_gramms_common.xpath(
+                        nx_gramms_status_xpath).extract()  # It's a status of phrase
+                    # It generates string for output. It describes parts of phrase or that it is full
                     nx_gramms = 'цельное слово' if len(nx_gramms_status) == 0 else nx_gramms_status[
                                                                                        0] + " : " + "|".join(
                         nx_gramms_common.xpath(nx_gramms_words_xpath).extract())
 
-                    translation_parts = []
+                    # Some translations can be shown as several parts (gray, some comments in brackets). DFS is solution.
+                    # The method finds all leaf text nodes. Concatenation of all nodes's text is translation
+                    # All phrases are divided using ';'
+                    translation_parts = []  # Translation can be divided on parts (see above). It's list of parts.
                     all_leaf_nodes = get_all_leaf_nodes(common_row.xpath(translate_xpath))
                     comment = ''
                     for node in all_leaf_nodes:
                         flag_full_translation = False
                         node_tag = get_selector_tag(node)
-                        if node_tag is None:
+                        if node_tag is None:  # It means that node includes only text
                             node_value = node.extract()
+                            # It means that translation is full and let's go to next
                             if node_value.strip() == ";":
                                 flag_full_translation = True
-                            if node == all_leaf_nodes[-1]:
+                            if node == all_leaf_nodes[-1]:  # Check that node is last
                                 translation_parts.append(node_value)
                                 flag_full_translation = True
                             if flag_full_translation:
@@ -215,7 +229,7 @@ class MultitranSpider(scrapy.Spider):
                                 output_array.append(dictionary[0])
                                 output_array.append(str(block_number))
                                 output_array.append(block_name)
-                                # output_array.append(nx_gramms)
+                                # output_array.append(nx_gramms) It's unused now
 
                                 output_array.append(author)
                                 output_array.append(author_href)
@@ -228,6 +242,7 @@ class MultitranSpider(scrapy.Spider):
                             else:
                                 translation_parts.append(node_value)
                         elif node_tag == "a":
+                            # Try to finds author's info
                             author_href = node.xpath('@href').extract_first()
                             author = re.findall('/m\.exe\?a=[0-9]*&[amp;]?UserName=(?P<author_name>.*)', author_href)
                             if len(author) > 0:
@@ -235,6 +250,7 @@ class MultitranSpider(scrapy.Spider):
                             else:
                                 author_href = ''
                                 author = ''
+            # Another variant - the row is a system row which describes new block (name, part of speech etc) (gray background)
             else:
                 self.write_translations(translates, output)
                 translates = []
