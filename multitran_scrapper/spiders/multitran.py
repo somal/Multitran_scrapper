@@ -34,6 +34,16 @@ Some comments of data:
 
  - output
 
+## Parsing speed increasing (important settings):
+For it, you should change settings.py.
+The Scrapy is based on asynchronous framework Twisted. Please see good lecture about async http://cs.brown.edu/courses/cs168/s12/handouts/async.pdf
+So Twisted has several flows. Flows are conditionally "concurrent".
+And so settings.py includes CONCURRENT_REQUESTS. It's count of flows. And you should set it.
+Of course, bigger CONCURRENT_REQUESTS provides big speed, but it can creates some errors, for example TimeError.
+With big speed the parser tries to download many links simultaneously and someone can stuck.
+When time is not critical, you should set CONCURRENT_REQUESTS < 16 otherwise > 16.
+For timeout error solving, you can increase DOWNLOAD_TIMEOUT (in sec).
+
 # Recommendation translations
 """
 import csv
