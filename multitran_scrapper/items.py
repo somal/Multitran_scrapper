@@ -9,6 +9,10 @@ import scrapy
 
 
 class TranslationItem(scrapy.Item):
+    """
+    This item is used in multitrtan_all_dictionaries for save translations. Example: http://www.multitran.com/m.exe?a=110&sc=801&l1=1&l2=2
+    It hasn't some recommendation system and additional info, only full info from page
+    """
     dictionary = scrapy.Field()
     word = scrapy.Field()
     translation = scrapy.Field()
