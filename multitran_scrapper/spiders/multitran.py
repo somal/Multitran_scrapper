@@ -13,14 +13,18 @@ For every word from input file, the parser creates several columns of informatio
 Some comments of data:
  - any word has several translations from different blocks
  - if you want to have only recommended translations, you should set ONLY_RECOMMENDATED_TRANSLATIONS = True, otherwise False
+ - please, read Description.docx for find block's definition
+ - also input file can has several columns and you can set a column as input word using TRANSLATE_WORD_INDEX. Others columns will be copied automatically
+ - Link of author is a relative path, i.e. /m.exe?a=32424&UserName=Ivan.
+    So you should concatenate it with 'www.multitran' with some settings of multitran (see above).
+ - Start URL is http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2 where {} is a requested word.
+    l1=1 means from English, l2=2 means to Russian, SHL=2 means Russian interface of site (name of dictionaries etc.), CL - ???
+
 
 
  - output
- - block
- - link_of_author
- - recomendation system
 
-
+# Recommendation translations
 """
 import csv
 import re
