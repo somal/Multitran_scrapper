@@ -9,7 +9,7 @@ DONE:
 
 TO DO:
  - Update recommendation system using different blocks
- - Maybe rewrite code for use Pandas as table engine instead of csv
+ - Maybe rewrite code for use Pandas as table engine instead of csv (optional)
 
 
 It has input csv file which contains words for translation as one column.
@@ -180,6 +180,7 @@ class MultitranSpider(scrapy.Spider):
         nx_gramms_status_xpath = "p[child::a]/text()"
         nx_gramms_words_xpath = "a[string-length(@title)>0]/text()"
         translate_xpath = 'td[@class="trans"]'
+
         block_number = 0
         translates = []
         output = []
