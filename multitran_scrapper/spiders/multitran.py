@@ -47,7 +47,24 @@ Also you can except some dictionaries for some narrow parsing using EXCEPTED_DIC
 This script has two sides: engineering and analysis. All tasks connected with parsing are engineering. Recommendation system for translations is the analysis.
 
 # Recommendation translations
-See MultitranSpider.write_translations.recommend_translation
+See the current version in MultitranSpider.write_translations.recommend_translation
+
+DONE:
+    1.Если на странице есть несколько блоков по одному и тому же словарю, то для этого набора блоков должен выбираться один рекомендуемый перевод
+        Имеются в виду такие случаи (новый интерфейс мультитрана):
+
+ возможность IP n
+    progr. IP capability (ssn)
+ возможность VPN n
+    progr. VPN capability (ssn)
+
+То есть у нас должен быть только один рекомендованный перевод не просто на один блок, но и на один словарь. Не может быть два рекомендованных перевода из одного и того же словаря.
+
+2.Нам надо отказываться от фраз, которые длиннее или короче, чем искомая фраза, при сборе переводов. Нам нужны только точные совпадения.
+Например, мы искали слово "возможность"
+Блоки " возможность n" и "возможности n" подходят (n видимо означает noun - часть речи "существительное")
+Но идущие дальше блоки " (представившаяся) возможность n",  "возможность IP n", "возможность VPN n", т.к. в этих блоках фраза длиннее, чем поисковое условие. Мы искали "возможность," но мы не искали слово IP рядом со словом возможность. Точно так же, если бы мы искали "возможность IP", то нам бы не подходили фразы "возможность n", т.к. они посвящены более короткой фразе.
+Отсекать блоки надо на раннем этапе, до выбора рекомендуемых переводов в блоках/словарях.
 """
 import csv  # Standard library for table processing (I/O)
 import re  # Standard library for regexp. It used for check author's link
