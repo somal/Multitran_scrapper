@@ -9,6 +9,7 @@ DONE:
 
 TO DO:
  - Update recommendation system using different blocks
+ - Maybe rewrite code for use Pandas as table engine instead of csv
 
 
 It has input csv file which contains words for translation as one column.
@@ -20,6 +21,8 @@ It has input csv file which contains words for translation as one column.
 
 For every word from input file, the parser creates several columns of information and saves to output csv file:
   input_word | translation | dictionary of translation (из какого словаря взят перевод) | block_number | author_name | link on author | author's comment
+Another form:  ['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author',
+           'Comment']
 Some comments of data:
  - any word has several translations from different blocks
  - if you want to have only recommended translations, you should set ONLY_RECOMMENDATED_TRANSLATIONS = True, otherwise False
@@ -29,10 +32,6 @@ Some comments of data:
     So you should concatenate it with 'www.multitran' with some settings of multitran (see above).
  - Start URL is http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2 where {} is a requested word.
     l1=1 means from English, l2=2 means to Russian, SHL=2 means Russian interface of site (name of dictionaries etc.), CL - ???
-
-
-
- - output
 
 ## Parsing speed increasing (important settings):
 For it, you should change settings.py.
@@ -44,13 +43,16 @@ With big speed the parser tries to download many links simultaneously and someon
 When time is not critical, you should set CONCURRENT_REQUESTS < 16 otherwise > 16.
 For timeout error solving, you can increase DOWNLOAD_TIMEOUT (in sec).
 
+Also you can except some dictionaries for some narrow parsing using EXCEPTED_DICTIONARIES (dictionary abbreviation list).
+This script has two sides: engineering and analysis. All tasks connected with parsing are engineering. Recommendation system for translations is the analysis.
+
 # Recommendation translations
 """
-import csv
-import re
+import csv  # Standard library for table processing (I/O)
+import re  # Standard library for regexp. It used for check author's link
 
 import scrapy
-from scrapy import Request
+from scrapy import Request  # It's scrapy's request. It used for request for every new URL
 
 # Settings
 INPUT_CSV_NAME = 'tables/input.csv'  # Path to input file with csv type
@@ -60,16 +62,18 @@ CSV_QUOTECHAR = '"'  # '|'
 OUTPUT_CSV_NAME = 'tables/output1.csv'  # Path to output file with csv type
 TRANSLATE_WORD_INDEX = 0  # Index of column which should be translated. Others columns will be copied to output file
 EXCEPTED_DICTIONARIES = ['разг.']  # Dictionaries which shouldn't be in output
-
-ONLY_RECOMMENDATED_TRANSLATIONS = True
-COLUMNS = ['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author',
-           'Comment']
+ONLY_RECOMMENDATED_TRANSLATIONS = True  # Flag for selecting only recommended translations
 
 
 class MultitranSpider(scrapy.Spider):
-    name = "multitran"
+    name = "multitran"  # It's name of spider which should be used for spider's calling using by 'scrapy crawl nultitran'
 
     def __init__(self):
+        """
+        It's the initial method before all calls connected with parsing.
+        It's the first method which called after object creating.
+        This method includes file opening for input/output (standard files and csv files)
+        """
         self.input_file = open(INPUT_CSV_NAME, 'r')
         self.input_reader = csv.reader(self.input_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTECHAR,
                                        quoting=csv.QUOTE_ALL)
