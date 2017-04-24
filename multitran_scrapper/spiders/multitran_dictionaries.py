@@ -46,7 +46,6 @@ import scrapy
 from scrapy import Request
 
 # Settings
-INPUT_CSV_NAME = 'input_dictionaries_abbreviations.csv'  # Path to input file with csv type
 # Delimiter and quotechar are parameters of csv file. You should know it if you created the file
 CSV_DELIMITER = '	'
 CSV_QUOTECHAR = '"'  # '|'
