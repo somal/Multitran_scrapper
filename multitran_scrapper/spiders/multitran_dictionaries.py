@@ -13,18 +13,14 @@ TO DO:
 It has not input csv file.
 
 For every word from input file, the parser creates several columns of information and saves to output csv file:
-  input_word | translation | dictionary of translation (из какого словаря взят перевод) | block_number | author_name | link on author | author's comment
-Another form:  ['Input word', 'Translations', 'Dictionary', 'Block number', 'Block name', 'Author', 'Link on author',
-           'Comment']
-Some comments of data:
- - any word has several translations from different blocks
- - if you want to have only recommended translations, you should set ONLY_RECOMMENDATED_TRANSLATIONS = True, otherwise False
- - please, read Description.docx for find block's definition
- - also input file can has several columns and you can set a column as input word using TRANSLATE_WORD_INDEX. Others columns will be copied automatically
- - Link of author is a relative path, i.e. /m.exe?a=32424&UserName=Ivan.
-    So you should concatenate it with 'www.multitran' with some settings of multitran (see above).
- - Start URL is http://www.multitran.com/m.exe?CL=1&s={}&l1=1&l2=2&SHL=2 where {} is a requested word.
-    l1=1 means from English, l2=2 means to Russian, SHL=2 means Russian interface of site (name of dictionaries etc.), CL - ???
+  abbreviation | full name
+
+Algorithms:
+ - Firstly, the parser finds all links on dictionaries and go to everyone (dictionaries have only full name in main page)
+ - For any dictionary, go to first word from it.
+    It based on think that all words from any dictionary contatins translations from the dictionary.
+ - For word finds all dictionaries (page with translation contains only abbreviations) and link on them which contains full name
+
 
 ## Parsing speed increasing (important settings):
 For it, you should change settings.py.
@@ -37,7 +33,6 @@ When time is not critical, you should set CONCURRENT_REQUESTS < 16 otherwise > 1
 For timeout error solving, you can increase DOWNLOAD_TIMEOUT (in sec).
 
 Also you can except some dictionaries for some narrow parsing using EXCEPTED_DICTIONARIES (dictionary abbreviation list).
-This script has two sides: engineering and analysis. All tasks connected with parsing are engineering. Recommendation system for translations is the analysis.
 
 """
 import csv
